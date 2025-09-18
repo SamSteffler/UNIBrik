@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main  # or 'master', depending on your default branch
+      
+permissions:
+  contents: read
+  pages: write      # Permissão para escrever nas GitHub Pages
+  id-token: write   # Permissão para autenticar o deploy
 
 jobs:
   build-deploy:
