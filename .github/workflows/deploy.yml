@@ -1,65 +1,34 @@
-# Nome do workflow adaptado para Vue
-name: Deploy Vue App to GitHub Pages
+name: Deploy Vue App
 
 on:
   push:
-    branches: [ "main" ] # Assumindo que 'main' é sua branch padrão
-
-# Permissões corretas para o deploy via 'GitHub Actions'
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Evita que múltiplos workflows do mesmo commit rodem ao mesmo tempo
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
+    branches:
+      - main  # or 'master', depending on your default branch
+      
 jobs:
-  # Job de build: constrói o site
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      # 1. Baixa o código do seu repositório (versão mais recente)
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # 2. Configura o Node.js (versão mais recente)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 22
 
-      # 3. Instala as dependências de forma mais rápida e segura
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      # 4. Gera a build do projeto Vite, definindo a URL base
       - name: Build app
-        run: npm run build -- --base=/${{ github.event.repository.name }}/
+        run: npm run build
 
-      # 5. Prepara o arquivo 404 para o roteamento de SPA (sua ótima ideia!)
       - name: Copy index.html to 404.html
         run: cp dist/index.html dist/404.html
-      
-      # 6. Faz o upload do resultado da build (pasta 'dist') como um artefato
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
 
-  # Job de deploy: publica o site
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      # 1. Faz o deploy usando a action oficial do GitHub
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
