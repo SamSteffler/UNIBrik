@@ -26,7 +26,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import SearchView from '../views/SearchView.vue'
 import ProfileView from '../views/ProfileView.vue'
-import LoginView from '../views/LoginView.vue' // 1. Importe a nova view
+import LoginView from '../views/LoginView.vue' 
+import ProductView from '../views/ProductView.vue' 
+
 import { userState } from '../services/authService';
 
 const router = createRouter({
@@ -56,6 +58,12 @@ const router = createRouter({
         requiresAuth: true
       }
     }
+    {
+      path: '/produto/:id', 
+      name: 'product',
+      component: ProductView
+    }
+
   ]
 })
 
