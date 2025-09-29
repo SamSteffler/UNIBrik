@@ -22,6 +22,14 @@ const profileImageUrl = computed(() => {
 const goToHome = () => {
   router.push('/');
 }
+const searchQuery = ref('');
+const submitSearch = () => {
+  const query = searchQuery.value.trim();
+  if (query) {
+    router.push({ name: 'search', query: { q: query } });
+    searchQuery.value = '';
+  }
+};
 </script>
 
 <template>
@@ -29,13 +37,20 @@ const goToHome = () => {
     <div class="logo" @click="goToHome">UNI Brik</div>
 
     <div v-if="showSearchBar" class="search-bar">
-      <input type="text" placeholder="TV 50 polegadas..." class="search-input" />
-      <button class="search-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-        </svg>
+      <input
+      type="text"
+      placeholder="TV 50 polegadas..."
+      class="search-input"
+      v-model="searchQuery"
+      @keyup.enter="submitSearch"
+      />
+      <button class="search-button" @click="submitSearch">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+      </svg>
       </button>
     </div>
+   
 
     <div class="user-area">
       <RouterLink v-if="!authService.userState.isLoggedIn" to="/login" class="profile-button">
