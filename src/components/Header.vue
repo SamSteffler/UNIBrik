@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import authService from '../services/authService';
 import SideMenu from './SideMenu.vue'; // 1. Importe o novo componente
+import defaultAvatar from '../assets/default-avatar.svg';
 
 const router = useRouter();
 const route = useRoute();
@@ -11,6 +12,12 @@ const route = useRoute();
 const isMenuOpen = ref(false);
 
 const showSearchBar = computed(() => route.path !== '/profile');
+
+// URL da foto de perfil do Google (ou fallback)
+const profileImageUrl = computed(() => {
+  const user = authService.userState.user || {};
+  return user.picture || user.photoURL || defaultAvatar;
+});
 
 const goToHome = () => {
   router.push('/');
@@ -34,8 +41,9 @@ const goToHome = () => {
       <RouterLink v-if="!authService.userState.isLoggedIn" to="/login" class="profile-button">
         Login ou Cadastre-se
       </RouterLink>
-      <RouterLink v-else to="/profile" class="profile-button">
-        Meu Perfil
+      <RouterLink v-else to="/profile" class="profile-button profile-avatar">
+        <img :src="profileImageUrl" alt="Foto de perfil" class="avatar-img" />
+        <span class="profile-label">Meu Perfil</span>
       </RouterLink>
       
       <button class="menu-toggle" @click="isMenuOpen = true">
@@ -48,3 +56,24 @@ const goToHome = () => {
 
   <SideMenu :is-open="isMenuOpen" @close="isMenuOpen = false" />
 </template>
+
+<style scoped>
+.profile-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-avatar .avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0,0,0,0.08);
+  background: #f5f5f5;
+}
+
+.profile-label {
+  line-height: 1;
+}
+</style>
