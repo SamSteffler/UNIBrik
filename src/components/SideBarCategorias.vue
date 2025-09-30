@@ -1,6 +1,5 @@
 <template>
   <div class="sidebar">
-    <h3>Categorias</h3>
     <ul>
       <li v-for="categoria in categorias" :key="categoria">
         <a href="#">{{ categoria }}</a>
@@ -25,17 +24,17 @@ const categorias = [
 <style scoped>
 .sidebar {
   background: #f2f2f2;
-  border-radius: 12px;
+  border-radius: 26px;
+  margin-top: 9px;
   padding: 15px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-.sidebar h3 {
-  margin-bottom: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0);
+  width: 200px;
 }
 
 .sidebar ul {
+  margin-top: 0;
   list-style: none;
+  line-height: 2;
   padding: 0;
 }
 
@@ -43,19 +42,30 @@ const categorias = [
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #ffffff;
-  font-size: 15px;
+  padding: 8px 5px;
+  border-bottom: 2.5px solid #0097b280;
+  font-size: 16px;
 }
 
 .sidebar li a {
   text-decoration: none;
-  color: #003B46;
-  font-weight: 500;
+  color: #004451;
+}
+
+.sidebar li:first-child {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0px;
+}
+
+.sidebar li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: -15px;
 }
 
 .arrow {
   font-weight: bold;
-  color: #00796B;
+  color: #0097b2;
 }
 </style>

@@ -1,9 +1,10 @@
 /* Reset básico e fontes */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  background-color: #ffffff;
+  color: #004451;
 }
 
 #app {
