@@ -1,247 +1,142 @@
 <template>
-  <div class="home-container">
-    
-    <!-- Seção: Acessados recentemente -->
-    <section class="section">
-      <h2 class="section-title">Acessados recentemente</h2>
-      <div class="cards-grid">
-        <div class="card" v-for="item in recentItems" :key="item.id">
-          <div class="card-image" :style="{ backgroundColor: item.color }"></div>
-          <div class="card-content">
-            <h3 class="card-title">{{ item.title }}</h3>
-            <p class="card-subtitle">{{ item.subtitle }}</p>
-          </div>
+  <div class="container">
+    <div class="main">
+      <h2>Você viu antes</h2>
+      <div class="visto-antes">
+        <div class="cards">
+          <CardAnuncio
+            v-for="(item, i) in vistosAntes"
+            :key="i"
+            :titulo="item.titulo"
+            :preco="item.preco"
+            :descricao="item.descricao"
+            :img="item.img"
+            :local="item.local"
+          />
         </div>
       </div>
-    </section>
 
-    <!-- Seção: Podem te interessar -->
-    <section class="section">
-      <h2 class="section-title">Podem te interessar</h2>
-      <div class="cards-grid">
-        <div class="card" v-for="item in suggestedItems" :key="item.id">
-          <div class="card-image" :style="{ backgroundColor: item.color }"></div>
-          <div class="card-content">
-            <h3 class="card-title">{{ item.title }}</h3>
-            <p class="card-subtitle">{{ item.subtitle }}</p>
-          </div>
+      <h2>Talvez você tenha interesse</h2>
+      <div class="interesse-container">
+        <div class="cards">
+          <CardAnuncio
+            v-for="(item, i) in interesse"
+            :key="i"
+            :titulo="item.titulo"
+            :preco="item.preco"
+            :descricao="item.descricao"
+            :img="item.img"
+            :local="item.local"
+          />
+        </div>
+        <div class="explorar-wrapper">
+          <a href="#" class="explorar">Explorar Anúncios</a>
         </div>
       </div>
-    </section>
+    </div>
+
+    <div class="sidebar-col">
+      <h2>Categorias</h2>
+      <SideBarCategorias />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import CardAnuncio from "../components/CardAnuncio.vue"
+import SideBarCategorias from "../components/SideBarCategorias.vue"
 
-// Dados para "Acessados recentemente" (4 itens)
-const recentItems = ref([
-  {
-    id: 1,
-    title: 'Livro de Cálculo I',
-    subtitle: 'Matemática - 7ª edição',
-    color: '#FF6B6B'
-  },
-  {
-    id: 2,
-    title: 'Cadeira de Escritório',
-    subtitle: 'Móveis - Ergonômica',
-    color: '#4ECDC4'
-  },
-  {
-    id: 3,
-    title: 'Notebook Dell',
-    subtitle: 'Eletrônicos - i5 8GB RAM',
-    color: '#45B7D1'
-  },
-  {
-    id: 4,
-    title: 'Violão Acústico',
-    subtitle: 'Instrumentos - Usado',
-    color: '#F9CA24'
-  }
-])
+const vistosAntes = [
+  { titulo: "Notebook", preco: "R$4000", descricao: "Notebook completo, seminovo e muito bom cuidado, acompanha ...", local: "UFSM", img: "https://via.placeholder.com/150" },
+  { titulo: "Escrivaninha", preco: "R$200", descricao: "Escrivaninha em MDF, 150x70cm, quadro de metal", local: "Em casa", img: "https://via.placeholder.com/150" },
+  { titulo: "Livros", preco: "Grátis", descricao: "Livros disponíveis para retirada: Cálculo I e II, Termodinâmica...", local: "UFSM", img: "https://via.placeholder.com/150" },
+  { titulo: "Jaleco", preco: "R$150", descricao: "Jaleco usado em ótimo estado, apenas remover nome bordado...", local: "UFSM", img: "https://via.placeholder.com/150" }
+]
 
-// Dados para "Podem te interessar" (10 itens)
-const suggestedItems = ref([
-  {
-    id: 5,
-    title: 'Física Moderna',
-    subtitle: 'Livros - 4ª edição',
-    color: '#6C5CE7'
-  },
-  {
-    id: 6,
-    title: 'Mesa de Estudos',
-    subtitle: 'Móveis - Madeira',
-    color: '#A29BFE'
-  },
-  {
-    id: 7,
-    title: 'Calculadora HP',
-    subtitle: 'Eletrônicos - Científica',
-    color: '#FD79A8'
-  },
-  {
-    id: 8,
-    title: 'Bicicleta Aro 26',
-    subtitle: 'Esporte - Mountain Bike',
-    color: '#00B894'
-  },
-  {
-    id: 9,
-    title: 'Kit Laboratório',
-    subtitle: 'Química - Completo',
-    color: '#E17055'
-  },
-  {
-    id: 10,
-    title: 'Mochila Universitária',
-    subtitle: 'Acessórios - Impermeável',
-    color: '#0984E3'
-  },
-  {
-    id: 11,
-    title: 'Apostila Engenharia',
-    subtitle: 'Material - Resumos',
-    color: '#00CEC9'
-  },
-  {
-    id: 12,
-    title: 'Monitor 24"',
-    subtitle: 'Eletrônicos - Full HD',
-    color: '#FDCB6E'
-  },
-  {
-    id: 13,
-    title: 'Microscópio',
-    subtitle: 'Laboratório - Óptico',
-    color: '#E84393'
-  },
-  {
-    id: 14,
-    title: 'Uniforme Curso',
-    subtitle: 'Roupas - Tamanho M',
-    color: '#74B9FF'
-  }
-])
+const interesse = [
+  { titulo: "Jaleco", preco: "R$150", descricao: "Jaleco usado em ótimo estado, apenas remover nome bordado...", local: "UFSM", img: "https://via.placeholder.com/150" },
+  { titulo: "Conjunto material", preco: "R$50", descricao: "Esquadro, transferidor e outras ferramentas para Desenho Indust...", local: "UFSM", img: "https://via.placeholder.com/150" },
+  { titulo: "Calculadora", preco: "R$1200", descricao: "Calculadora científica, específica para contas complexas, matém...", local: "A definir", img: "https://via.placeholder.com/150" }
+]
 </script>
 
-<style scoped>
-.home-container {
-  width: 75%;
-  margin: 0 auto;
-  padding: 0 1rem;
+<style>
+
+body {
+  background-color: #ffffffff;
 }
 
-.main-title {
-  text-align: center;
-  color: #2d3436;
-  margin-bottom: 3rem;
-  font-size: 2.5rem;
-  font-weight: 300;
+.visto-antes {
+  display: flex;
+  align-items: center; /* alinha verticalmente ao centro */
+  background-color: #f2f2f2;
+  border-radius: 40px;
+  padding: 8px;
+  gap: 0;
 }
 
-.section {
-  margin-bottom: 4rem;
+.visto-antes .cards {
+  flex: 1; /* ocupa todo o espaço restante */
+  margin: 0 16px;
+  gap: 20px;
+  overflow-x: auto; /* mantém a rolagem horizontal se necessário */
 }
 
-.section-title {
-  font-size: 1.8rem;
-  color: #2d3436;
-  margin-bottom: 1.5rem;
-  padding-left: 0.5rem;
-  border-left: 4px solid #0984e3;
+.interesse-container {
+  display: flex;
+  align-items: center; /* alinha verticalmente ao centro */
+  justify-content: space-between;
+  background-color: #f2f2f2;
+  border-radius: 40px;
+  padding: 8px;
 }
 
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  max-width: 900px; /* Limita para 3 cards por linha */
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.card-image {
-  height: 180px;
-  width: 100%;
+.explorar-wrapper {
+  flex-shrink: 0; /* impede que o botão encolha */
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
 }
 
-.card-image::after {
-  content: '📷';
-  font-size: 2rem;
-  opacity: 0.7;
-  color: white;
+.interesse-container .cards {
+  display: flex;
+  margin: 0 16px;
+  gap: 20px;
+  overflow-x: auto; /* mantém a rolagem horizontal se necessário */
+  flex-shrink: 0; /* ocupa só o tamanho necessário */
 }
 
-.card-content {
-  padding: 1.25rem;
+h2 {
+  color: #004451;
+  margin-bottom: 10px;
 }
 
-.card-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #2d3436;
-  margin: 0 0 0.5rem 0;
-  line-height: 1.3;
+.container {
+  display: flex;
+  gap: 40px;
+  width: max-content;
 }
 
-.card-subtitle {
-  color: #636e72;
-  font-size: 0.95rem;
-  margin: 0;
-  line-height: 1.4;
+.main {
+  flex: 3;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-  .main-title {
-    font-size: 2rem;
-    margin-bottom: 2rem;
-  }
-  
-  .section-title {
-    font-size: 1.5rem;
-  }
-  
-  .cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-  }
-  
-  .card-content {
-    padding: 1rem;
-  }
-  
-  .home-container {
-    padding: 0 0.5rem;
-  }
+.cards {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 16px 0;
 }
 
-@media (max-width: 480px) {
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .main-title {
-    font-size: 1.6rem;
-  }
+.explorar {
+  display: inline-block;
+  background: #F9A825;
+  color: black;
+  padding: 10px 18px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-left: auto;
+  margin-right: 26px;
+  white-space: nowrap;
 }
 </style>
