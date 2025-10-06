@@ -38,9 +38,9 @@ const router = createRouter({
       meta: {
         requiresAuth: true
       }
-    }
+    },
     {
-      path: '/produto/:id', 
+      path: '/product/:id', 
       name: 'product',
       component: ProductView
     }
