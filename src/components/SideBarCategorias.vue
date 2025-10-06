@@ -2,8 +2,10 @@
   <div class="sidebar">
     <ul>
       <li v-for="categoria in categorias" :key="categoria">
-        <a href="#">{{ categoria }}</a>
-        <span class="arrow">➜</span>
+        <a href="#">
+          <span>{{ categoria }}</span>
+          <span class="arrow">➜</span>
+        </a>
       </li>
     </ul>
   </div>
@@ -17,7 +19,11 @@ const categorias = [
   "Roupas", 
   "Materiais didáticos", 
   "Serviços", 
-  "Aluguel"
+  "Aluguel",
+  "Leonardo Brisolla",
+  "Celular",
+  "Tchóvis",
+  "Bandeclay",
 ]
 </script>
 
@@ -39,33 +45,41 @@ const categorias = [
 }
 
 .sidebar li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 5px;
   border-bottom: 2.5px solid #0097b280;
   font-size: 16px;
 }
 
-.sidebar li a {
-  text-decoration: none;
-  color: #004451;
-}
-
 .sidebar li:first-child {
-  border-top: none;
-  padding-top: 0;
-  margin-top: 0px;
+  border-top: none; 
+  padding-top: 0; 
+  margin-top: -5px;
 }
 
 .sidebar li:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: -15px;
+  border-bottom: none; 
+  padding-bottom: 0; 
+  margin-bottom: -20px;
+}
+
+.sidebar li a {
+  display: flex;
+  justify-content: space-between; /* texto à esquerda, seta no limite direito */
+  align-items: center;
+  width: 100%; /* ocupa toda a largura da caixa */
+  padding: 8px 5px;
+  text-decoration: none;
+  color: #004451;
+  transition: transform 0.1s ease-in-out;
+  cursor: pointer;
+}
+
+.sidebar li a:hover {
+  transform: scale(1.05);
 }
 
 .arrow {
   font-weight: bold;
+  margin-right: 8px;
   color: #0097b2;
 }
 </style>
