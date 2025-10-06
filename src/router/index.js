@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import SearchView from '../views/SearchView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import LoginView from '../views/LoginView.vue'
+import RegisterView from '../views/RegisterView.vue'
 import { userState } from '../services/authService';
 
 const router = createRouter({
@@ -18,11 +19,15 @@ const router = createRouter({
       name: 'search',
       component: SearchView
     },
-    // 2. Adicione a nova rota de login
     {
       path: '/login',
       name: 'login',
       component: LoginView
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView
     },
     {
       path: '/profile',
