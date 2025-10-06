@@ -77,7 +77,6 @@ body {
 
 .visto-antes .cards {
   flex: 1; /* ocupa todo o espaço restante */
-  margin: 0 16px;
   gap: 20px;
   overflow-x: auto; /* mantém a rolagem horizontal se necessário */
 }
@@ -99,7 +98,6 @@ body {
 
 .interesse-container .cards {
   display: flex;
-  margin: 0 16px;
   gap: 20px;
   overflow-x: auto; /* mantém a rolagem horizontal se necessário */
   flex-shrink: 0; /* ocupa só o tamanho necessário */
@@ -124,7 +122,18 @@ h2 {
   display: flex;
   gap: 15px;
   overflow-x: auto;
-  padding: 16px 0;
+  padding: 20px 20px;
+}
+
+.cards > *{
+  cursor: pointer; /* só o card é clicável */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.cards > *:hover {
+  transform: scale(1.05);
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .explorar {
@@ -138,5 +147,15 @@ h2 {
   margin-left: auto;
   margin-right: 26px;
   white-space: nowrap;
+
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
+
+.explorar:hover {
+  transform: scale(1.05);
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
 </style>
