@@ -1,147 +1,248 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { GoogleLogin } from 'vue3-google-login';
-import authService from '../services/authService';
+import { ref } from "vue"
+import logo from '../assets/blue-logo-1.png'
+import facebookLogo from '../assets/facebook-logo.png'
+import googleLogo from '../assets/google-logo.png'
 
-const router = useRouter();
-const email = ref('');
-const password = ref('');
+// IMPORTANTE: Importe o componente GoogleLogin, e não apenas a função googleSdkLoaded
+import { GoogleLogin } from 'vue3-google-login'
+import authService from '../services/authService'
 
-// MODIFICADO: Função de login com e-mail e senha
-const handleEmailLogin = async () => {
-  try {
-    const res = await fetch('http://localhost:3000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value, password: password.value })
-    });
+// Campos locais
+const emailOuCpf = ref("")
+const senha = ref("")
 
-    const data = await res.json();
+// Callback Google: Chamado quando o login com Google é bem-sucedido
+const onLoginSuccess = (response) => {
+  // A 'response' contém o credential JWT (o token de identidade)
+  console.log('✅ Usuário logado com Google (via componente):', response)
 
-    if (!res.ok) {
-      // Se a resposta não for 2xx, lança um erro com a mensagem do backend
-      throw new Error(data.error || 'Falha no login.');
-    }
-
-    // Se o login for bem-sucedido:
-    authService.login(data.user); // 1. Salva o estado do usuário
-    router.push('/profile');     // 2. Redireciona para o perfil
-
-  } catch (error) {
-    console.error("Erro no login:", error);
-    alert(error.message); // Exibe o erro para o usuário
-  }
-};
-// MODIFICADO: Callback para o sucesso do login com Google
-const onLoginSuccess = async (response) => {
-  const userData = JSON.parse(atob(response.credential.split('.')[1]));
+  // Decodifica o payload do JWT para obter os dados do usuário
+  const userData = JSON.parse(atob(response.credential.split(".")[1]))
   
-  // AQUI ESTÁ A NOVA LÓGICA
-  // 1. Enviar os dados para o backend para verificação
-  const res = await fetch('http://localhost:3000/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: userData.name,
-        email: userData.email,
-        sub: userData.sub,
-        picture: userData.picture
-      })
-  });
-
-  const data = await res.json();
-
-  if (res.status === 200) { // 2. Se o usuário já existe, faz o login
-    authService.login(data.user);
-    router.push('/profile');
-  } else if (res.status === 404) { // 3. Se não existe, redireciona para o cadastro
-    // Passamos os dados do Google como query params para a página de registro
-    router.push({ 
-        name: 'register', 
-        query: { 
-            name: userData.name,
-            email: userData.email,
-            sub: userData.sub,
-            picture: userData.picture
-        } 
-    });
-  } else {
-    // Tratar outros erros
-    console.error('Falha na autenticação:', data.error);
-  }
-};
+  // Exemplo de como você pode usar os dados:
+  console.log("Nome:", userData.name)
+  console.log("Email:", userData.email)
+  
+  // Chame o serviço de autenticação com o token ou os dados decodificados, conforme o seu backend espera
+  // authService.googleLogin({ token: response.credential, ...userData })
+}
 
 const onLoginFailure = () => {
-  console.error('Login com Google falhou');
-};
+  console.error("❌ Login com Google falhou")
+}
 
-const goToRegister = () => {
-  router.push('/register');
-};
+// Ação principal do botão
+const entrarOuCadastrar = async () => {
+  try {
+    // Note: Sua função original enviava 'email' e 'senha',
+    // assumindo que 'emailOuCpf' é o campo de email aqui.
+    await authService.login({
+      email: emailOuCpf.value,
+      senha: senha.value,
+    })
+  } catch (error) {
+    console.error("❌ Erro no login manual:", error)
+  }
+}
+
+// REMOVIDO: A função 'googleLogin' antiga e complexa que usava 'gapi.auth2' foi removida.
+// O componente <GoogleLogin> fará isso por nós.
 </script>
 
 <template>
   <div class="login-container">
-    <h2>Acesse sua conta</h2>
-    <form @submit.prevent="handleEmailLogin">
-      <div class="form-group">
-        <label for="email">E-mail</label>
-        <input type="email" id="email" v-model="email" required />
-      </div>
-      <div class="form-group">
-        <label for="password">Senha</label>
-        <input type="password" id="password" v-model="password" required />
-      </div>
-      <button type="submit" class="submit-button">Entrar</button>
-    </form>
-
-    <div class="divider">ou</div>
-
-    <div class="google-login-button">
-      <GoogleLogin :callback="onLoginSuccess" :error="onLoginFailure" />
+    <div class="logo">
+      <img :src="logo" alt="Logo" />
     </div>
 
-    <div class="register-link">
-      <p>Não tem uma conta? <a href="#" @click.prevent="goToRegister">Cadastre-se</a></p>
+    <input
+      v-model="emailOuCpf"
+      type="text"
+      placeholder="E-mail ou CPF"
+      class="input-field"
+    />
+    <input
+      v-model="senha"
+      type="password"
+      placeholder="Senha"
+      class="input-field"
+    />
+
+    <button class="main-btn" @click="entrarOuCadastrar">
+      Entrar ou Cadastrar
+    </button>
+
+    <hr class="divider" />
+    <p>Ou escolha uma das opções</p>
+
+    <div class="social-login">
+      <GoogleLogin 
+        :callback="onLoginSuccess" 
+        :prompt="false" 
+        mode="button"
+        :onFailure="onLoginFailure"
+      >
+        <button class="social-btn google">
+          <img :src="googleLogo" alt="Google" />
+        </button>
+      </GoogleLogin>
+
+      <button class="social-btn facebook">
+        <img :src="facebookLogo" alt="Facebook" />
+      </button>
     </div>
-    
   </div>
 </template>
 
 <style scoped>
 .login-container {
   max-width: 400px;
+  height: 515px;
+  width: 350px;
   margin: 5rem auto;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  background-color: #f2f2f2;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 15px;
   text-align: center;
+  color: #0097b2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.form-group {
-  text-align: left;
-  margin-bottom: 1rem;
+
+/* Logo */
+.logo {
+  display: flex;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  flex-direction: column;
+  align-items: center;
 }
-.submit-button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #0097B2;
-  color: white;
+
+.logo img {
+  width: 150px;
+  margin-bottom: 0.5rem;
+}
+
+.logo h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Inputs */
+.input-field {
+  width: 85%;
+  padding: 0.65rem 1rem;
+  border-radius: 50px;
   border: none;
-  border-radius: 4px;
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+  background-color: #f2f2f2;
+  border: 2px solid #0097b2;
+  color: #0097b2;
+}
+
+.input-field::placeholder {
+  color: #0097b289;
+}
+
+.input-field:focus {
+  border-color: #0097b2;
+  background-color: #f2f2f2;
+  outline: none; /* remove a borda de foco padrão */
+  box-shadow: none; /* remove qualquer sombra interna extra */
+}
+
+.input-field:focus::placeholder {
+  color: #0097b2;
+}
+
+/* Chrome, Edge, Safari */
+.input-field:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #f2f2f2 inset; /* muda o fundo */
+  -webkit-text-fill-color: #0097b2; /* muda a cor da fonte */
+  transition: background-color 5000s ease-in-out; /* evita efeito piscante */
+}
+
+/* Firefox */
+.input-field:-moz-autofill {
+  box-shadow: 0 0 0px 1000px #f2f2f2 inset;
+  -moz-text-fill-color: #0097b2;
+}
+
+/* Botão principal */
+.main-btn {
+  margin-top: 25px;
+  margin-bottom: 20px;
+  border: 2px solid #0097b2;
+  background-color: #0097b2;
+  color: #f2f2f2;
+  width: 60%;
+  border-radius: 50px;
+  padding: 0.8rem 2rem;
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
+  transition: 0.3s;
 }
+
+.main-btn:hover {
+  border: 2px solid #0097b2;
+  background-color: #f0f0f0ff;
+  color: #0097b2;
+}
+
+/* Divisor */
 .divider {
-  margin: 1.5rem 0;
-  color: #888;
+  width: 75%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: none;
+  border-top: 2px solid #0097b26e;
 }
-.register-link {
-  margin-top: 1.5rem;
+
+/* Login Social */
+.social-login {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
 }
-.register-link a {
-  color: #0097B2;
-  font-weight: bold;
-  text-decoration: none;
+
+.social-btn {
+  background-color: white;
+  border: 1px solid #0097b2;
+  border-radius: 50%;
+  width: 48px;        
+  height: 48px;      
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.social-btn img {
+  width: 35px;
+  height: 35px;
+}
+
+.social-btn:hover {
+  transform: scale(1.1);
+  border: 1.5px solid #0097b2;
+}
+
+
+.google:hover {
+  background-color: #ffffff;
+}
+
+.facebook img {
+  filter: none;
 }
 </style>
