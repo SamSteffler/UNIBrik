@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const db = require("./database.js");
 const bcrypt = require("bcrypt"); // 1. Importe o bcrypt
+const { nanoid } = require('nanoid');
 
 const app = express();
 const PORT = 3000;
@@ -16,37 +17,34 @@ app.get("/", (req, res) => {
     res.json({ message: "Servidor UNI Brik está no ar!" });
 });
 
-// 2. ROTA DE REGISTRO (NOVA)
+// ROTA DE REGISTRO (MODIFICADA)
 app.post("/api/auth/register", async (req, res) => {
     const { name, email, password, google_sub, picture } = req.body;
 
     if (!name || !email) {
         return res.status(400).json({ error: "Nome e email são obrigatórios." });
     }
-
-    // Se for um cadastro padrão (com senha), a senha é obrigatória
     if (!google_sub && !password) {
         return res.status(400).json({ error: "Senha é obrigatória para cadastro padrão." });
     }
 
-    // Hash da senha, se ela foi fornecida
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+    const publicId = nanoid(16);  // 2. Gere um novo ID público único
 
-    const sql = `INSERT INTO users (name, email, password, google_sub, picture) VALUES (?, ?, ?, ?, ?)`;
-    const params = [name, email, hashedPassword, google_sub, picture];
-
+    // 3. Adicione o public_id na query de inserção
+    const sql = `INSERT INTO users (public_id, name, email, password, google_sub, picture) VALUES (?, ?, ?, ?, ?, ?)`;
+    const params = [publicId, name, email, hashedPassword, google_sub, picture];
+    
     db.run(sql, params, function (err) {
         if (err) {
             return res.status(400).json({ error: "Este e-mail já está em uso." });
         }
         
-        // APÓS INSERIR, BUSCA O USUÁRIO RECÉM-CRIADO E O RETORNA
         db.get("SELECT * FROM users WHERE id = ?", [this.lastID], (err, user) => {
             if (err) {
-                // Mesmo com erro aqui, o usuário foi criado. Retornamos um sucesso simples.
                 return res.status(201).json({ id: this.lastID });
             }
-            const { password, ...userToSend } = user; // Remove a senha da resposta
+            const { password, ...userToSend } = user;
             res.status(201).json({ user: userToSend });
         });
     });

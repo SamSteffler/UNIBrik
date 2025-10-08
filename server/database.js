@@ -14,6 +14,7 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
         // Cria a tabela de usuários se ela não existir
         db.run(`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            public_id TEXT NOT NULL UNIQUE,
             google_sub TEXT UNIQUE, -- ID único do usuário no Google
             name TEXT,
             email TEXT UNIQUE,
