@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const db = require("./database.js");
 const bcrypt = require("bcrypt"); // 1. Importe o bcrypt
+const products = require("./products.js");
 
 const app = express();
 const PORT = 3000;
@@ -105,4 +106,37 @@ app.post("/api/auth/google", (req, res) => {
 // Inicia o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
+});
+
+// -------------------------
+// Rotas de produtos
+// -------------------------
+
+// Criar produto
+app.post('/api/products', (req, res) => {
+    const product = req.body;
+    if (!product.title) return res.status(400).json({ error: 'Title is required' });
+    products.createProduct(product, (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ product: row });
+    });
+});
+
+// Buscar produto por id
+app.get('/api/products/:id', (req, res) => {
+    const id = req.params.id;
+    products.getProductById(id, (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Product not found' });
+        res.json({ product: row });
+    });
+});
+
+// Pesquisa simples
+app.get('/api/products', (req, res) => {
+    const q = req.query.q || '';
+    products.searchProducts(q, 50, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ results: rows });
+    });
 });
