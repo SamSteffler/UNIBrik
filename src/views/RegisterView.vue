@@ -161,7 +161,7 @@ const handleRegister = async () => {
 
 <style scoped>
 .register-container {
-  max-width: 500px;
+  max-width: 800px;
   margin: 3rem auto;
   padding: 2rem;
   background-color: #fff;
@@ -198,7 +198,7 @@ label {
   font-weight: bold;
 }
 input {
-  width: 100%;
+  width: 90%;
   padding: 0.75rem;
   border: 1px solid #ccc;
   border-radius: 4px;
