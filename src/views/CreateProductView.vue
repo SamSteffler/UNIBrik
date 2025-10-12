@@ -10,12 +10,25 @@
 
       <div class="form-group">
         <label for="condition">Condição</label>
-        <input id="condition" v-model="form.condition" />
+        <select id="condition" v-model="form.condition">
+          <option value="Novo">Novo</option>
+          <option value="Usado">Usado - como novo</option>
+          <option value="Usado - bom">Usado - bom</option>
+          <option value="Usado - aceitável">Usado - aceitável</option>
+        </select>
       </div>
 
       <div class="form-group">
         <label for="category">Categoria</label>
-        <input id="category" v-model="form.category" />
+        <select id="category" v-model="form.category">
+          <option value="Eletrônicos">Eletrônicos</option>
+          <option value="Móveis">Móveis</option>
+          <option value="Livros">Livros</option>
+          <option value="Roupas">Roupas</option>
+          <option value="Serviços">Serviços</option>
+          <option value="Materiais">Materiais</option>
+          <option value="Outros">Outros</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -30,10 +43,11 @@
         </div>
 
         <div class="form-group">
-          <label for="location">Local</label>
+          <label for="location">Local de retirada</label>
           <select id="location" v-model="form.location">
             <option value="UFSM">UFSM</option>
             <option value="Em casa">Em casa</option>
+            <option value="A definir">A combinar</option>
           </select>
         </div>
       </div>

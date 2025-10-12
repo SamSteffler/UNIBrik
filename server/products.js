@@ -126,9 +126,13 @@ function createProduct(product, cb) {
   });
 }
 
-// Get product by id
+// Get product by id, including seller name from users table when available
 function getProductById(id, cb) {
-  db.get('SELECT * FROM products WHERE id = ?', [id], cb);
+  const sql = `SELECT p.*, u.name AS seller_name, u.public_id AS seller_public_id
+               FROM products p
+               LEFT JOIN users u ON u.id = p.seller_id
+               WHERE p.id = ?`;
+  db.get(sql, [id], cb);
 }
 
 // Basic search (simple LIKE-based fallback). For better results, use full-text or external engine.
@@ -168,4 +172,15 @@ module.exports = {
   getProductsBySeller: function(seller_id, cb) {
     db.all('SELECT * FROM products WHERE seller_id = ? ORDER BY created_at DESC', [seller_id], cb);
   }
+};
+
+// Update a product by id
+module.exports.updateProduct = function(id, data, cb) {
+  const { title, condition, category, description, price, location } = data;
+  const sql = `UPDATE products SET title = ?, condition = ?, category = ?, description = ?, price = ?, location = ? WHERE id = ?`;
+  const params = [title, condition, category, description, price, location, id];
+  db.run(sql, params, function(err) {
+    if (err) return cb(err);
+    db.get('SELECT * FROM products WHERE id = ?', [id], cb);
+  });
 };

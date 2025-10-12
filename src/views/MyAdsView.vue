@@ -9,7 +9,7 @@
     <div v-if="error" class="error">{{ error }}</div>
 
     <div class="cards">
-      <div v-for="item in products" :key="item.id" class="card">
+      <div v-for="item in products" :key="item.id" class="card clickable" @click="goEdit(item.id)">
         <div class="card-image">📦</div>
         <div class="card-content">
           <h3>{{ item.title }}</h3>
@@ -34,6 +34,10 @@ const error = ref(null);
 
 function goCreate() {
   router.push('/products/create');
+}
+
+function goEdit(id) {
+  router.push({ name: 'product-edit', params: { id } });
 }
 
 async function load() {

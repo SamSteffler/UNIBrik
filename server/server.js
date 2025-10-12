@@ -163,3 +163,13 @@ app.get('/api/my-products', (req, res) => {
         res.json({ results: rows });
     });
 });
+
+// Atualizar produto
+app.put('/api/products/:id', (req, res) => {
+    const id = req.params.id;
+    const payload = req.body;
+    products.updateProduct(id, payload, (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ product: row });
+    });
+});

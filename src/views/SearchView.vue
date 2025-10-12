@@ -10,6 +10,10 @@ const results = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
+function goToProduct(id) {
+  router.push({ name: 'product', params: { id } });
+}
+
 function doSearch(q) {
   if (!q || q.trim() === '') {
     results.value = [];
@@ -60,13 +64,21 @@ onMounted(() => {
     </div>
 
     <div class="results-grid">
-      <div v-for="item in results" :key="item.id" class="result-card">
+      <div v-for="item in results" :key="item.id" class="result-card" @click="goToProduct(item.id)">
         <div class="result-image" :aria-hidden="true">📦</div>
         <div class="result-body">
           <h3>{{ item.title }}</h3>
           <p class="muted">{{ item.condition || item.category || '' }}</p>
-          <p class="desc">{{ item.description }}</p>
-          <p class="price">R$ {{ item.price }} | {{ item.location }}</p>
+          <p class="desc">
+            {{ item.description && item.description.length > 100
+              ? item.description.slice(0, 100) + '...'
+              : item.description }}
+          </p>
+          <p class="price">
+            <span v-if="item.price === 0">Grátis</span>
+            <span v-else>R$ {{ item.price }}</span>
+            <span class="sep"> | {{ item.location }}</span>
+          </p>
         </div>
       </div>
     </div>
