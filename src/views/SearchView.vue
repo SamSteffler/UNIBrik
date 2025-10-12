@@ -10,9 +10,11 @@ const results = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
-let debounceTimer = null;
-
 function doSearch(q) {
+  if (!q || q.trim() === '') {
+    results.value = [];
+    return;
+  }
   loading.value = true;
   error.value = null;
   fetch(`http://localhost:3000/api/products?q=${encodeURIComponent(q)}`)
@@ -27,15 +29,17 @@ function doSearch(q) {
     .finally(() => (loading.value = false));
 }
 
-function onInput() {
-  // update URL query param
-  router.replace({ query: { q: query.value } });
-
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    doSearch(query.value);
-  }, 300);
+function onSearch() {
+  // Update URL so Header searches and direct links work
+  router.push({ name: 'search', query: { q: query.value } });
 }
+
+// React to query changes in the URL (this makes Header -> /search?q=... work)
+watch(() => route.query.q, (newQ) => {
+  query.value = newQ || '';
+  if (query.value) doSearch(query.value);
+  else results.value = [];
+});
 
 onMounted(() => {
   if (query.value) doSearch(query.value);
@@ -45,17 +49,9 @@ onMounted(() => {
 
 <template>
   <div class="search-page">
-    <h1>Pesquisar produtos</h1>
+    <h1>Resultados da Pesquisa - {{ query }}</h1>
 
-    <div class="search-box">
-      <input
-        type="search"
-        placeholder="Procure por títulos, descrições ou categorias..."
-        v-model="query"
-        @input="onInput"
-      />
-      <button @click="doSearch(query)">Buscar</button>
-    </div>
+    <!-- Search is performed from the header; this view reacts to ?q= in the URL -->
 
     <div class="status">
       <p v-if="loading">Buscando...</p>
@@ -68,9 +64,9 @@ onMounted(() => {
         <div class="result-image" :aria-hidden="true">📦</div>
         <div class="result-body">
           <h3>{{ item.title }}</h3>
-          <p class="muted">{{ item.subtitle || item.category || '' }}</p>
+          <p class="muted">{{ item.condition || item.category || '' }}</p>
           <p class="desc">{{ item.description }}</p>
-          <p class="price">R$ {{ item.price }}</p>
+          <p class="price">R$ {{ item.price }} | {{ item.location }}</p>
         </div>
       </div>
     </div>

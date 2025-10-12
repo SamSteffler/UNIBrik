@@ -1,8 +1,14 @@
 <script setup>
 import authService from '../services/authService';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const handleLogout = () => {
   authService.logout();
+};
+
+const myAds = () => {
+  router.push('/my-ads');
 };
 </script>
 
@@ -11,7 +17,7 @@ const handleLogout = () => {
     <aside class="profile-menu">
       <h3>Minha Conta</h3>
       <ul>
-        <li>Meus anúncios</li>
+        <li @click="myAds">Meus anúncios</li>
         <li>Favoritos</li>
         <li>Dados cadastrais</li>
         <li class="logout-button" @click="handleLogout">Sair</li>
