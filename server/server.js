@@ -137,3 +137,13 @@ app.get('/api/products', (req, res) => {
         res.json({ results: rows });
     });
 });
+
+// Produtos de um vendedor (meus anúncios)
+app.get('/api/my-products', (req, res) => {
+    const seller_id = req.query.seller_id;
+    if (!seller_id) return res.status(400).json({ error: 'seller_id is required' });
+    products.getProductsBySeller(seller_id, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ results: rows });
+    });
+});
