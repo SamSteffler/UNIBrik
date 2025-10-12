@@ -16,20 +16,31 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             public_id TEXT NOT NULL UNIQUE,
             google_sub TEXT UNIQUE, -- ID único do usuário no Google
-            name TEXT,
-            email TEXT UNIQUE,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
             picture TEXT,
             password TEXT,
+            
+            -- NOVAS COLUNAS ADICIONADAS AQUI --
+            birth_date TEXT,
+            phone TEXT,
+            address_cep TEXT,
+            address_street TEXT,
+            address_number TEXT,
+            address_district TEXT,
+            address_city TEXT,
+            address_uf TEXT,
+            
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`, (err) => {
             if (err) {
                 // Tabela já pode existir
-                console.log("Erro ao criar tabela 'users', possivelmente já existe.");
+                console.log("Erro ao criar tabela 'users'.");
             } else {
                 console.log("Tabela 'users' criada ou já existente.");
             }
         });
-    }
+    }   
 });
 
 module.exports = db;

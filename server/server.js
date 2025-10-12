@@ -5,6 +5,8 @@ const cors = require("cors");
 const db = require("./database.js");
 const bcrypt = require("bcrypt"); // 1. Importe o bcrypt
 const products = require("./products.js");
+const { nanoid } = require('nanoid'); // Garanta que o nanoid está importado
+
 
 const app = express();
 const PORT = 3000;
@@ -19,7 +21,11 @@ app.get("/", (req, res) => {
 
 // ROTA DE REGISTRO (MODIFICADA)
 app.post("/api/auth/register", async (req, res) => {
-    const { name, email, password, google_sub, picture } = req.body;
+    const { 
+            name, email, password, google_sub, picture,
+            birth_date, phone, address_cep, address_street, 
+            address_number, address_district, address_city, address_uf
+        } = req.body;
 
     if (!name || !email) {
         return res.status(400).json({ error: "Nome e email são obrigatórios." });
@@ -32,8 +38,18 @@ app.post("/api/auth/register", async (req, res) => {
     const publicId = nanoid(16);  // 2. Gere um novo ID público único
 
     // 3. Adicione o public_id na query de inserção
-    const sql = `INSERT INTO users (public_id, name, email, password, google_sub, picture) VALUES (?, ?, ?, ?, ?, ?)`;
-    const params = [publicId, name, email, hashedPassword, google_sub, picture];
+    const sql = `INSERT INTO users (
+        public_id, name, email, password, google_sub, picture,
+        birth_date, phone, address_cep, address_street, address_number,
+        address_district, address_city, address_uf
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    // 3. Adicione os novos parâmetros na ordem correta
+    const params = [
+        publicId, name, email, hashedPassword, google_sub, picture,
+        birth_date, phone, address_cep, address_street, address_number,
+        address_district, address_city, address_uf
+    ];
     
     db.run(sql, params, function (err) {
         if (err) {
