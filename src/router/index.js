@@ -6,6 +6,8 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import CreateProductView from '../views/CreateProductView.vue'
 import MyAdsView from '../views/MyAdsView.vue'
+import ProductView from '../views/ProductView.vue'
+import EditProductView from '../views/EditProductView.vue'
 import { userState } from '../services/authService';
 
 const router = createRouter({
@@ -52,6 +54,19 @@ const router = createRouter({
       path: '/my-ads',
       name: 'my-ads',
       component: MyAdsView,
+      meta: { requiresAuth: true }
+    }
+    ,
+    {
+      path: '/product/:id',
+      name: 'product',
+      component: ProductView
+    }
+    ,
+    {
+      path: '/product/:id/edit',
+      name: 'product-edit',
+      component: EditProductView,
       meta: { requiresAuth: true }
     }
   ]
