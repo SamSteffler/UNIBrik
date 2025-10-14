@@ -4,13 +4,19 @@
     <div v-if="error" class="error">{{ error }}</div>
 
     <div v-if="product" class="product-card">
-      <div class="image">📦</div>
-      <div class="info">
-        <h1>{{ product.title }}</h1>
+        <div class="image">📦</div>
+        <div class="info">
+          <div class="title-row">
+            <h1>{{ product.title }}</h1>
+            <button class="star" :class="{active: favorited}" @click="toggleFavorite">
+              <span v-if="favorited">★</span>
+              <span v-else>☆</span>
+            </button>
+          </div>
         <p class="muted">{{ product.condition }} | {{ product.category }} | {{ product.location }}</p>
         <p class="desc">{{ product.description }}</p>
         <p class="price"> <strong v-if="product.price === 0">Grátis</strong><span v-else>R$ {{ product.price }}</span></p>
-        <p class="meta">Anúncio criado em: {{ product.created_at }}</p>
+        <p class="meta">Anúncio criado em: {{ formatDate(product.created_at) }}</p>
   <p class="meta">Vendedor: {{ product.seller_name || product.seller_id }}</p>
       </div>
     </div>
@@ -20,16 +26,42 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { url } from '../services/api';
+import { userState } from '../services/authService';
 const route = useRoute();
 const id = route.params.id;
 
 const product = ref(null);
 const loading = ref(true);
 const error = ref(null);
+const favorited = ref(false);
+
+async function checkFavorite() {
+  if (!userState.user) return favorited.value = false;
+  try {
+    const res = await fetch(url(`/api/users/${userState.user.id}/favorites`));
+    if (!res.ok) return favorited.value = false;
+    const data = await res.json();
+    favorited.value = (data.results || []).some(p => p.id == id);
+  } catch (e) {
+    console.error('favorite check error', e);
+    favorited.value = false;
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('pt-BR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
 
 onMounted(async () => {
   try {
-    const res = await fetch(`http://localhost:3000/api/products/${id}`);
+  const res = await fetch(url(`/api/products/${id}`));
     if (!res.ok) throw new Error('Produto não encontrado');
     const data = await res.json();
     product.value = data.product;
@@ -39,7 +71,31 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
+  await checkFavorite();
 });
+
+async function toggleFavorite() {
+  if (!userState.user) return alert('Você precisa estar logado para favoritar produtos.');
+  const uid = userState.user.id;
+  const method = favorited.value ? 'DELETE' : 'POST';
+  try {
+    // optimistic UI
+    favorited.value = !favorited.value;
+    const res = await fetch(url(`/api/products/${id}/favorite`), {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: uid })
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Erro ao alterar favorito');
+    }
+  } catch (err) {
+    console.error(err);
+    favorited.value = !favorited.value; // rollback
+    alert(err.message || 'Erro ao favoritar');
+  }
+}
 </script>
 
 <style scoped>

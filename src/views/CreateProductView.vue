@@ -61,6 +61,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { userState } from '../services/authService';
+import { url } from '../services/api';
 
 const router = useRouter();
 
@@ -76,7 +77,7 @@ const form = ref({
 const handleSubmit = async () => {
   try {
     const payload = { ...form.value, seller_id: userState.user ? userState.user.id : null };
-    const res = await fetch('http://localhost:3000/api/products', {
+  const res = await fetch(url('/api/products'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

@@ -126,6 +126,54 @@ function createProduct(product, cb) {
   });
 }
 
+// --- Favorites helpers ---
+function ensureFavoritesTable() {
+  db.run(`CREATE TABLE IF NOT EXISTS favorites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, product_id)
+  )`, (err) => {
+    if (err) console.log('Could not create favorites table:', err.message);
+  });
+  db.run(`CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_favorites_product ON favorites(product_id)`);
+}
+
+// idempotent create
+function createFavorite(user_id, product_id, cb) {
+  const sql = `INSERT OR IGNORE INTO favorites (user_id, product_id) VALUES (?, ?)`;
+  db.run(sql, [user_id, product_id], function(err) {
+    if (err) return cb(err);
+    // check whether row exists (either newly inserted or existed)
+    db.get('SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ?', [user_id, product_id], (err, row) => {
+      if (err) return cb(err);
+      cb(null, !!row);
+    });
+  });
+}
+
+function deleteFavorite(user_id, product_id, cb) {
+  db.run('DELETE FROM favorites WHERE user_id = ? AND product_id = ?', [user_id, product_id], function(err) {
+    if (err) return cb(err);
+    cb(null, { deleted: this.changes });
+  });
+}
+
+function isFavorited(user_id, product_id, cb) {
+  db.get('SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ? LIMIT 1', [user_id, product_id], (err, row) => {
+    if (err) return cb(err);
+    cb(null, !!row);
+  });
+}
+
+function getFavoritesByUser(user_id, limit = 50, offset = 0, cb) {
+  const sql = `SELECT p.* FROM favorites f JOIN products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?`;
+  db.all(sql, [user_id, limit, offset], cb);
+}
+
+
 // Get product by id, including seller name from users table when available
 function getProductById(id, cb) {
   const sql = `SELECT p.*, u.name AS seller_name, u.public_id AS seller_public_id
@@ -184,3 +232,21 @@ module.exports.updateProduct = function(id, data, cb) {
     db.get('SELECT * FROM products WHERE id = ?', [id], cb);
   });
 };
+
+// Delete a product by id
+module.exports.deleteProduct = function(id, cb) {
+  db.run('DELETE FROM products WHERE id = ?', [id], function(err) {
+    if (err) return cb(err);
+    // rows affected: this.changes
+    cb(null, { deleted: this.changes });
+  });
+};
+
+// Favorites exports
+module.exports.createFavorite = createFavorite;
+module.exports.deleteFavorite = deleteFavorite;
+module.exports.isFavorited = isFavorited;
+module.exports.getFavoritesByUser = getFavoritesByUser;
+
+// Ensure favorites table exists on startup
+ensureFavoritesTable();

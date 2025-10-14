@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { GoogleLogin } from 'vue3-google-login';
 import authService from '../services/authService';
+import { url } from '../services/api';
 
 const router = useRouter();
 const email = ref('');
@@ -11,7 +12,7 @@ const password = ref('');
 // MODIFICADO: Função de login com e-mail e senha
 const handleEmailLogin = async () => {
   try {
-    const res = await fetch('http://localhost:3000/api/auth/login', {
+  const res = await fetch(url('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email.value, password: password.value })
@@ -39,7 +40,7 @@ const onLoginSuccess = async (response) => {
   
   // AQUI ESTÁ A NOVA LÓGICA
   // 1. Enviar os dados para o backend para verificação
-  const res = await fetch('http://localhost:3000/api/auth/google', {
+  const res = await fetch(url('/api/auth/google'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
