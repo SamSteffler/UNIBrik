@@ -12,7 +12,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "form-data": "^4.0.4",
+    "multer": "^1.4.5-lts.1",
     "nanoid": "^5.1.6",
+    "node-fetch": "^2.7.0",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
     "vue3-google-login": "^2.0.34"

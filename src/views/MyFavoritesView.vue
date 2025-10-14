@@ -6,7 +6,10 @@
     <div v-if="results.length === 0">Nenhum favorito encontrado. Escolha os seus anúncios favoritos e eles aparecerão aqui!</div>
     <div class="results-grid">
         <div v-for="item in results" :key="item.id" class="result-card" @click="goToProduct(item.id)">
-        <div class="result-image">📦</div>
+        <div class="result-image">
+          <img v-if="item.images && item.images.length" :src="item.images[0]" alt="" />
+          <span v-else>📦</span>
+        </div>
         <div class="result-body">
           <h3>{{ item.title }}</h3>
           <p class="muted">{{ item.condition || item.category }}</p>
@@ -52,4 +55,5 @@ onMounted(load);
 .muted { color:#636e72 }
 .price { color:#0984e3 }
 .error { color:#d63031 }
+.result-image img { width:64px; height:64px; object-fit:cover; border-radius:8px }
 </style>

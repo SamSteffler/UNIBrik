@@ -1,19 +1,15 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { url } from '../services/api';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
+import CardAnuncio from '../components/CardAnuncio.vue'
 
 const route = useRoute();
-const router = useRouter();
 
 const query = ref(route.query.q || '');
 const results = ref([]);
 const loading = ref(false);
 const error = ref(null);
-
-function goToProduct(id) {
-  router.push({ name: 'product', params: { id } });
-}
 
 function doSearch(q) {
   if (!q || q.trim() === '') {
@@ -32,11 +28,6 @@ function doSearch(q) {
       error.value = 'Erro ao buscar produtos.';
     })
     .finally(() => (loading.value = false));
-}
-
-function onSearch() {
-  // Update URL so Header searches and direct links work
-  router.push({ name: 'search', query: { q: query.value } });
 }
 
 // React to query changes in the URL (this makes Header -> /search?q=... work)
@@ -65,23 +56,7 @@ onMounted(() => {
     </div>
 
     <div class="results-grid">
-      <div v-for="item in results" :key="item.id" class="result-card" @click="goToProduct(item.id)">
-        <div class="result-image" :aria-hidden="true">📦</div>
-        <div class="result-body">
-          <h3>{{ item.title }}</h3>
-          <p class="muted">{{ item.condition || item.category || '' }}</p>
-          <p class="desc">
-            {{ item.description && item.description.length > 100
-              ? item.description.slice(0, 100) + '...'
-              : item.description }}
-          </p>
-          <p class="price">
-            <span v-if="item.price === 0">Grátis</span>
-            <span v-else>R$ {{ item.price }}</span>
-            <span class="sep"> | {{ item.location }}</span>
-          </p>
-        </div>
-      </div>
+      <CardAnuncio v-for="item in results" :key="item.id" :item="item" variant="list" />
     </div>
   </div>
 </template>
@@ -135,6 +110,7 @@ onMounted(() => {
   border-radius:8px;
   font-size:1.5rem;
 }
+.result-image img { width:100%; height:100%; object-fit:cover; border-radius:8px }
 .result-body h3 { margin: 0 0 0.25rem; }
 .muted { color: #636e72; font-size:0.9rem; margin:0 0 0.5rem; }
 .desc { color:#2d3436; margin:0 0 0.5rem; }

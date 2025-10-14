@@ -54,6 +54,19 @@
 
       <button type="submit" class="submit-button">Registrar</button>
     </form>
+    
+    <section class="images-section">
+      <h3>Anexar imagens (opcional)</h3>
+      <div class="upload-row">
+        <input type="file" ref="fileInput" multiple accept="image/*" />
+        <button @click="uploadAfterCreate" class="upload-button">Enviar imagens após criar</button>
+      </div>
+      <div class="thumbnails">
+        <div v-for="img in images" :key="img" class="thumb">
+          <img :src="img" alt="" />
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -74,6 +87,10 @@ const form = ref({
   location: 'UFSM'
 });
 
+const images = ref([]);
+const fileInput = ref(null);
+let createdProductId = null; // store ID after creation to allow uploading images
+
 const handleSubmit = async () => {
   try {
     const payload = { ...form.value, seller_id: userState.user ? userState.user.id : null };
@@ -84,13 +101,34 @@ const handleSubmit = async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Erro ao criar produto');
-    alert('Produto registrado com sucesso!');
-    router.push('/search?q=' + encodeURIComponent(form.value.title));
+    createdProductId = data.product.id;
+    alert('Produto registrado com sucesso! Você pode enviar imagens agora (ou editar o anúncio depois).');
+    // optionally redirect to edit page where images and more can be managed
+    router.push('/product/' + createdProductId);
   } catch (err) {
     console.error(err);
     alert(err.message || 'Erro ao criar produto');
   }
 };
+
+async function uploadAfterCreate() {
+  if (!createdProductId) return alert('Crie o produto primeiro.');
+  const files = fileInput.value?.files;
+  if (!files || files.length === 0) return alert('Selecione pelo menos uma imagem.');
+  const fd = new FormData();
+  for (const f of files) fd.append('images', f);
+  try {
+    const res = await fetch(url(`/api/products/${createdProductId}/images`), { method: 'POST', body: fd });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t || 'Upload failed');
+    }
+    const data = await res.json();
+    images.value.push(...(data.images || []));
+    fileInput.value.value = null;
+    alert('Imagens enviadas com sucesso');
+  } catch (e) { console.error(e); alert(e.message || 'Erro no upload'); }
+}
 </script>
 
 <style scoped>
