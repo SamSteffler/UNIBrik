@@ -4,6 +4,11 @@ import SearchView from '../views/SearchView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
+import CreateProductView from '../views/CreateProductView.vue'
+import MyAdsView from '../views/MyAdsView.vue'
+import ProductView from '../views/ProductView.vue'
+import EditProductView from '../views/EditProductView.vue'
+import MyFavoritesView from '../views/MyFavoritesView.vue'
 import { userState } from '../services/authService';
 
 const router = createRouter({
@@ -22,12 +27,20 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: LoginView
+      component: LoginView,
+      meta: { hideHeader: true }
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterView
+      component: RegisterView,
+      meta: { hideHeader: true }
+    },
+    {
+      path: '/products/create',
+      name: 'create-product',
+      component: CreateProductView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/profile',
@@ -36,6 +49,33 @@ const router = createRouter({
       meta: {
         requiresAuth: true
       }
+    }
+    ,
+    {
+      path: '/my-ads',
+      name: 'my-ads',
+      component: MyAdsView,
+      meta: { requiresAuth: true }
+    }
+    ,
+    {
+      path: '/product/:id',
+      name: 'product',
+      component: ProductView
+    }
+    ,
+    {
+      path: '/product/:id/edit',
+      name: 'product-edit',
+      component: EditProductView,
+      meta: { requiresAuth: true }
+    }
+    ,
+    {
+      path: '/favorites',
+      name: 'favorites',
+      component: MyFavoritesView,
+      meta: { requiresAuth: true }
     }
   ]
 })

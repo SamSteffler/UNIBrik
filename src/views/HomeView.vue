@@ -1,32 +1,24 @@
 <template>
   <div class="container">
     <div class="main">
-      <h2>Você viu antes</h2>
+      <h2>Produtos gratuitos</h2>
       <div class="visto-antes">
         <div class="cards">
           <CardAnuncio
-            v-for="(item, i) in vistosAntes"
-            :key="i"
-            :titulo="item.titulo"
-            :preco="item.preco"
-            :descricao="item.descricao"
-            :img="item.img"
-            :local="item.local"
+            v-for="item in freeProducts.slice(0,4)"
+            :key="item.id"
+            :item="item"
           />
         </div>
       </div>
 
-      <h2>Talvez você tenha interesse</h2>
+      <h2>Adicionados recentemente</h2>
       <div class="interesse-container">
         <div class="cards">
           <CardAnuncio
-            v-for="(item, i) in interesse"
-            :key="i"
-            :titulo="item.titulo"
-            :preco="item.preco"
-            :descricao="item.descricao"
-            :img="item.img"
-            :local="item.local"
+            v-for="item in recentProducts.slice(0,4)"
+            :key="item.id"
+            :item="item"
           />
         </div>
         <div class="explorar-wrapper">
@@ -43,21 +35,39 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import CardAnuncio from "../components/CardAnuncio.vue"
 import SideBarCategorias from "../components/SideBarCategorias.vue"
+import { url } from '../services/api'
 
-const vistosAntes = [
-  { titulo: "Notebook", preco: "R$4000", descricao: "Notebook completo, seminovo e muito bom cuidado, acompanha ...", local: "UFSM", img: "https://via.placeholder.com/150" },
-  { titulo: "Escrivaninha", preco: "R$200", descricao: "Escrivaninha em MDF, 150x70cm, quadro de metal", local: "Em casa", img: "https://via.placeholder.com/150" },
-  { titulo: "Livros", preco: "Grátis", descricao: "Livros disponíveis para retirada: Cálculo I e II, Termodinâmica...", local: "UFSM", img: "https://via.placeholder.com/150" },
-  { titulo: "Jaleco", preco: "R$150", descricao: "Jaleco usado em ótimo estado, apenas remover nome bordado...", local: "UFSM", img: "https://via.placeholder.com/150" }
-]
+const freeProducts = ref([])
+const recentProducts = ref([])
+const loadingFree = ref(false)
+const loadingRecent = ref(false)
+const error = ref(null)
 
-const interesse = [
-  { titulo: "Jaleco", preco: "R$150", descricao: "Jaleco usado em ótimo estado, apenas remover nome bordado...", local: "UFSM", img: "https://via.placeholder.com/150" },
-  { titulo: "Conjunto material", preco: "R$50", descricao: "Esquadro, transferidor e outras ferramentas para Desenho Indust...", local: "UFSM", img: "https://via.placeholder.com/150" },
-  { titulo: "Calculadora", preco: "R$1200", descricao: "Calculadora científica, específica para contas complexas, matém...", local: "A definir", img: "https://via.placeholder.com/150" }
-]
+async function loadHome() {
+  loadingFree.value = true
+  loadingRecent.value = true
+  try {
+    const [freeRes, recentRes] = await Promise.all([
+      fetch(url('/api/products/free?limit=12')),
+      fetch(url('/api/products/recent?limit=12'))
+    ])
+    const freeJson = await freeRes.json()
+    const recentJson = await recentRes.json()
+    freeProducts.value = (freeJson.results || [])
+    recentProducts.value = (recentJson.results || [])
+  } catch (e) {
+    console.error('loadHome', e)
+    error.value = 'Erro ao carregar anúncios.'
+  } finally {
+    loadingFree.value = false
+    loadingRecent.value = false
+  }
+}
+
+onMounted(loadHome)
 </script>
 
 <style>
@@ -111,7 +121,8 @@ h2 {
 .container {
   display: flex;
   gap: 40px;
-  width: max-content;
+  width: 100%;
+  align-items: flex-start;
 }
 
 .main {

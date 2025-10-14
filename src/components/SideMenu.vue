@@ -41,8 +41,8 @@ const handleLogout = () => {
             <hr />
 
             <template v-if="authService.userState.isLoggedIn">
-              <li><RouterLink to="/profile" @click="handleClose">Meus Anúncios</RouterLink></li>
-              <li><RouterLink to="/profile" @click="handleClose">Favoritos</RouterLink></li>
+              <li><RouterLink to="/my-ads" @click="handleClose">Meus Anúncios</RouterLink></li>
+              <li><RouterLink to="/favorites" @click="handleClose">Favoritos</RouterLink></li>
               <li><RouterLink to="/profile" @click="handleClose">Dados Cadastrais</RouterLink></li>
               <hr />
               <li><a href="#" @click.prevent="handleLogout">Sair</a></li>
