@@ -6,6 +6,7 @@ const db = require("./database.js");
 const bcrypt = require("bcrypt"); // 1. Importe o bcrypt
 const products = require("./products.js");
 const { nanoid } = require('nanoid'); // Garanta que o nanoid está importado
+const os = require('os');
 
 
 const app = express();
@@ -13,6 +14,12 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Simple request logger to help debug incoming API calls
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+    next();
+});
 
 // Rota de Teste
 app.get("/", (req, res) => {
@@ -116,9 +123,25 @@ app.post("/api/auth/google", (req, res) => {
     });
 }); 
 
-// Inicia o servidor
-app.listen(PORT, () => {
+// Helper para obter IP local (primeiro IPv4 não-interno)
+function getLocalIP() {
+    const ifaces = os.networkInterfaces();
+    for (const name of Object.keys(ifaces)) {
+        for (const iface of ifaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
+
+// Inicia o servidor e vincula a todas as interfaces
+app.listen(PORT, '0.0.0.0', () => {
+    const ip = getLocalIP();
     console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Acesse localmente: http://localhost:${PORT}`);
+    console.log(`Acesse pela rede: http://${ip}:${PORT}`);
 });
 
 // -------------------------
@@ -172,4 +195,53 @@ app.put('/api/products/:id', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ product: row });
     });
+});
+
+// Deletar produto
+app.delete('/api/products/:id', (req, res) => {
+    const id = req.params.id;
+    console.log(`DELETE called for id=${id}`);
+    products.deleteProduct(id, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result && result.deleted) return res.json({ deleted: true });
+        res.status(404).json({ error: 'Product not found' });
+    });
+});
+
+// Favoritar um produto (idempotent)
+app.post('/api/products/:id/favorite', (req, res) => {
+    const productId = req.params.id;
+    const userId = req.body.user_id || req.query.user_id;
+    if (!userId) return res.status(400).json({ error: 'user_id is required' });
+    products.createFavorite(userId, productId, (err, ok) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ favorited: !!ok });
+    });
+});
+
+// Remover favorito
+app.delete('/api/products/:id/favorite', (req, res) => {
+    const productId = req.params.id;
+    const userId = req.body.user_id || req.query.user_id;
+    if (!userId) return res.status(400).json({ error: 'user_id is required' });
+    products.deleteFavorite(userId, productId, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ deleted: !!(result && result.deleted) });
+    });
+});
+
+// List favorites for a user
+app.get('/api/users/:id/favorites', (req, res) => {
+    const userId = req.params.id;
+    const limit = parseInt(req.query.limit || '50', 10);
+    const offset = parseInt(req.query.offset || '0', 10);
+    products.getFavoritesByUser(userId, limit, offset, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ results: rows });
+    });
+});
+
+// Fallback JSON 404 handler (avoid Express default HTML responses)
+app.use((req, res) => {
+    res.status(404).json({ error: `Not found: ${req.method} ${req.originalUrl}` });
 });

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { url } from '../services/api';
 import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
@@ -21,7 +22,7 @@ function doSearch(q) {
   }
   loading.value = true;
   error.value = null;
-  fetch(`http://localhost:3000/api/products?q=${encodeURIComponent(q)}`)
+  fetch(url(`/api/products?q=${encodeURIComponent(q)}`))
     .then(res => res.json())
     .then(data => {
       results.value = data.results || data;

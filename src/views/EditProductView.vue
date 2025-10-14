@@ -50,6 +50,7 @@
       <div class="actions">
         <button type="submit" class="submit-button">Salvar</button>
         <button type="button" class="cancel-button" @click="goBack">Cancelar</button>
+        <button type="button" class="delete-button" @click="handleDelete">Remover produto</button>
       </div>
     </form>
   </div>
@@ -58,6 +59,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { url } from '../services/api';
 import { userState } from '../services/authService';
 
 const route = useRoute();
@@ -78,7 +80,7 @@ const form = ref({
 async function load() {
   loading.value = true;
   try {
-    const res = await fetch(`http://localhost:3000/api/products/${id}`);
+  const res = await fetch(url(`/api/products/${id}`));
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Erro ao carregar produto');
     Object.assign(form.value, data.product);
@@ -99,7 +101,7 @@ async function load() {
 
 async function handleSubmit() {
   try {
-    const res = await fetch(`http://localhost:3000/api/products/${id}`, {
+  const res = await fetch(url(`/api/products/${id}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form.value)
@@ -111,6 +113,30 @@ async function handleSubmit() {
   } catch (err) {
     console.error(err);
     alert(err.message || 'Erro ao atualizar produto');
+  }
+}
+
+async function handleDelete() {
+  if (!confirm('Tem certeza que deseja remover este produto? Esta operação não pode ser desfeita.')) return;
+  try {
+    const res = await fetch(url(`/api/products/${id}`), { method: 'DELETE' });
+    // Parse response safely: if server returns JSON, parse it; otherwise read text
+    let data;
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      data = await res.json();
+    } else {
+      data = { text: await res.text() };
+    }
+    if (!res.ok) {
+      // Prefer error message from JSON, fallback to plain text
+      throw new Error((data && data.error) || data.text || 'Erro ao deletar produto');
+    }
+    alert('Produto removido com sucesso');
+    router.push('/my-ads');
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Erro ao remover produto');
   }
 }
 

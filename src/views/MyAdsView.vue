@@ -26,6 +26,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { userState } from '../services/authService';
+import { url } from '../services/api';
 
 const router = useRouter();
 const products = ref([]);
@@ -48,7 +49,7 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const res = await fetch(`http://localhost:3000/api/my-products?seller_id=${userState.user.id}`);
+  const res = await fetch(url(`/api/my-products?seller_id=${userState.user.id}`));
     const data = await res.json();
     products.value = data.results || [];
   } catch (err) {

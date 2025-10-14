@@ -71,6 +71,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import authService from '../services/authService';
+import { url } from '../services/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -128,7 +129,7 @@ const fetchAddressByCep = async () => {
 // MODIFICADO: Função de cadastro
 const handleRegister = async () => {
   try {
-    const res = await fetch('http://localhost:3000/api/auth/register', {
+  const res = await fetch(url('/api/auth/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form.value)
