@@ -7,6 +7,9 @@ const bcrypt = require("bcrypt"); // 1. Importe o bcrypt
 const products = require("./products.js");
 const { nanoid } = require('nanoid'); // Garanta que o nanoid está importado
 const os = require('os');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 
 const app = express();
@@ -158,12 +161,39 @@ app.post('/api/products', (req, res) => {
     });
 });
 
+// Free products
+app.get('/api/products/free', (req, res) => {
+    const limit = parseInt(req.query.limit || '12', 10);
+    products.getFreeProducts(limit, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const base = `${req.protocol}://${req.get('host')}`;
+        (rows || []).forEach(r => { r.images = (r.images || []).map(p => `${base}${p}`); });
+        res.json({ results: rows });
+    });
+});
+
+// Recent products (most recent additions)
+app.get('/api/products/recent', (req, res) => {
+    const limit = parseInt(req.query.limit || '12', 10);
+    // reuse searchProducts with empty query -> returns recent items
+    products.searchProducts('', limit, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const base = `${req.protocol}://${req.get('host')}`;
+        (rows || []).forEach(r => { r.images = (r.images || []).map(p => `${base}${p}`); });
+        res.json({ results: rows });
+    });
+});
+
 // Buscar produto por id
 app.get('/api/products/:id', (req, res) => {
     const id = req.params.id;
     products.getProductById(id, (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: 'Product not found' });
+        // prefix images
+        if (row.images && row.images.length) {
+            row.images = row.images.map(p => `${req.protocol}://${req.get('host')}${p}`);
+        }
         res.json({ product: row });
     });
 });
@@ -173,6 +203,8 @@ app.get('/api/products', (req, res) => {
     const q = req.query.q || '';
     products.searchProducts(q, 50, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
+        const base = `${req.protocol}://${req.get('host')}`;
+        (rows || []).forEach(r => { r.images = (r.images || []).map(p => `${base}${p}`); });
         res.json({ results: rows });
     });
 });
@@ -183,6 +215,8 @@ app.get('/api/my-products', (req, res) => {
     if (!seller_id) return res.status(400).json({ error: 'seller_id is required' });
     products.getProductsBySeller(seller_id, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
+        const base = `${req.protocol}://${req.get('host')}`;
+        (rows || []).forEach(r => { r.images = (r.images || []).map(p => `${base}${p}`); });
         res.json({ results: rows });
     });
 });
@@ -238,6 +272,64 @@ app.get('/api/users/:id/favorites', (req, res) => {
     products.getFavoritesByUser(userId, limit, offset, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ results: rows });
+    });
+});
+
+// Serve images folder statically
+const imagesDir = path.join(__dirname, '..', 'public', 'images', 'ads');
+fs.mkdirSync(imagesDir, { recursive: true });
+app.use('/images/ads', express.static(imagesDir));
+
+// Multer setup: store files under public/images/ads/<productId>/
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const productId = req.params.id;
+        const dest = path.join(imagesDir, String(productId));
+        fs.mkdirSync(dest, { recursive: true });
+        cb(null, dest);
+    },
+    filename: (req, file, cb) => {
+        // include timestamp to avoid collisions
+        const name = Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        cb(null, name);
+    }
+});
+const upload = multer({ storage });
+
+// Upload image(s) for a product
+app.post('/api/products/:id/images', upload.array('images', 8), (req, res) => {
+    const productId = req.params.id;
+    const relPaths = (req.files || []).map(f => `/images/ads/${productId}/${f.filename}`);
+    // store in DB for convenience (store relative paths)
+    products.addImages(productId, relPaths, (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const abs = relPaths.map(p => `${req.protocol}://${req.get('host')}${p}`);
+        res.json({ images: abs });
+    });
+});
+
+// List images for a product
+app.get('/api/products/:id/images', (req, res) => {
+    const productId = req.params.id;
+    products.getImages(productId, (err, images) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const abs = (images || []).map(p => `${req.protocol}://${req.get('host')}${p}`);
+        res.json({ images: abs });
+    });
+});
+
+// Delete an image (by filename)
+app.delete('/api/products/:id/images', (req, res) => {
+    const productId = req.params.id;
+    const { filename } = req.body;
+    if (!filename) return res.status(400).json({ error: 'filename is required' });
+    const filepath = path.join(imagesDir, String(productId), path.basename(filename));
+    fs.unlink(filepath, (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        products.removeImage(productId, `/images/ads/${productId}/${path.basename(filename)}`, (err2) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            res.json({ deleted: true });
+        });
     });
 });
 

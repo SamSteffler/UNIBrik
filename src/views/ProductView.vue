@@ -4,7 +4,12 @@
     <div v-if="error" class="error">{{ error }}</div>
 
     <div v-if="product" class="product-card">
-        <div class="image">📦</div>
+        <div class="image">
+          <template v-if="selectedImage">
+            <img :src="selectedImage" alt="Produto" />
+          </template>
+          <span v-else>📦</span>
+        </div>
         <div class="info">
           <div class="title-row">
             <h1>{{ product.title }}</h1>
@@ -18,6 +23,14 @@
         <p class="price"> <strong v-if="product.price === 0">Grátis</strong><span v-else>R$ {{ product.price }}</span></p>
         <p class="meta">Anúncio criado em: {{ formatDate(product.created_at) }}</p>
   <p class="meta">Vendedor: {{ product.seller_name || product.seller_id }}</p>
+      </div>
+    </div>
+    
+    <div v-if="product && product.images && product.images.length" class="gallery">
+      <div class="thumbs">
+        <button v-for="(img,i) in product.images" :key="img" class="thumb-btn" :class="{active: selectedImage === img}" @click="selectImage(img)">
+          <img :src="img" alt="thumb" />
+        </button>
       </div>
     </div>
   </div>
@@ -35,6 +48,7 @@ const product = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const favorited = ref(false);
+const selectedImage = ref(null);
 
 async function checkFavorite() {
   if (!userState.user) return favorited.value = false;
@@ -65,6 +79,10 @@ onMounted(async () => {
     if (!res.ok) throw new Error('Produto não encontrado');
     const data = await res.json();
     product.value = data.product;
+    // initialize selected image to first image if present
+    if (product.value && product.value.images && product.value.images.length) {
+      selectedImage.value = product.value.images[0];
+    }
   } catch (err) {
     console.error(err);
     error.value = err.message || 'Erro ao carregar produto';
@@ -96,12 +114,22 @@ async function toggleFavorite() {
     alert(err.message || 'Erro ao favoritar');
   }
 }
+
+function selectImage(img) {
+  selectedImage.value = img;
+}
 </script>
 
 <style scoped>
 .product-page { max-width:900px; margin:2rem auto; padding:1rem }
 .product-card { display:flex; gap:1rem; background:white; padding:1rem; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.06) }
 .image { width:160px; height:160px; background:#f1f2f6; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:3rem }
+.image img { width:100%; height:100%; object-fit:cover; border-radius:8px }
+.gallery { max-width: 900px; margin: 1rem auto 0; padding: 0 1rem }
+.thumbs { display:flex; gap:0.5rem; align-items:center }
+.thumb-btn { border: none; padding:0; background: transparent; cursor:pointer; border-radius:6px; overflow:hidden }
+.thumb-btn img { width:80px; height:60px; object-fit:cover; display:block; border-radius:6px; border:2px solid transparent }
+.thumb-btn.active img { border-color: #0984e3 }
 .info h1 { margin:0 0 0.5rem }
 .muted { color:#636e72; margin-bottom:0.75rem }
 .desc { margin-bottom:1rem }

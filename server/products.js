@@ -173,6 +173,45 @@ function getFavoritesByUser(user_id, limit = 50, offset = 0, cb) {
   db.all(sql, [user_id, limit, offset], cb);
 }
 
+// --- Images helpers ---
+// We'll store image paths in a simple images table linked to products
+db.run(`CREATE TABLE IF NOT EXISTS product_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  product_id INTEGER NOT NULL,
+  path TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`, (err) => {
+  if (err) console.log('Could not create product_images table:', err.message);
+});
+
+function addImages(product_id, paths, cb) {
+  if (!paths || paths.length === 0) return cb(null);
+  const placeholders = paths.map(() => '(?, ?)').join(',');
+  // We'll insert one-by-one to keep it simple
+  let done = 0; let firstErr = null;
+  paths.forEach(p => {
+    db.run('INSERT INTO product_images (product_id, path) VALUES (?, ?)', [product_id, p], function(err) {
+      if (err && !firstErr) firstErr = err;
+      done++;
+      if (done === paths.length) cb(firstErr);
+    });
+  });
+}
+
+function getImages(product_id, cb) {
+  db.all('SELECT path FROM product_images WHERE product_id = ? ORDER BY created_at ASC', [product_id], (err, rows) => {
+    if (err) return cb(err);
+    cb(null, (rows || []).map(r => r.path));
+  });
+}
+
+function removeImage(product_id, path, cb) {
+  db.run('DELETE FROM product_images WHERE product_id = ? AND path = ?', [product_id, path], function(err) {
+    if (err) return cb(err);
+    cb(null, { deleted: this.changes });
+  });
+}
+
 
 // Get product by id, including seller name from users table when available
 function getProductById(id, cb) {
@@ -180,13 +219,35 @@ function getProductById(id, cb) {
                FROM products p
                LEFT JOIN users u ON u.id = p.seller_id
                WHERE p.id = ?`;
-  db.get(sql, [id], cb);
+  db.get(sql, [id], (err, row) => {
+    if (err || !row) return cb(err, row);
+    // attach images
+    getImages(row.id, (imgErr, images) => {
+      if (!imgErr) row.images = images || [];
+      cb(null, row);
+    });
+  });
 }
 
 // Basic search (simple LIKE-based fallback). For better results, use full-text or external engine.
 function searchProducts(q, limit = 20, cb) {
+  const finishWithRows = (err, rows) => {
+    if (err) return cb(err);
+    // attach images to each row
+    if (!rows || rows.length === 0) return cb(null, rows);
+    let remaining = rows.length; let firstErr = null;
+    rows.forEach(r => {
+      getImages(r.id, (gErr, images) => {
+        if (gErr && !firstErr) firstErr = gErr;
+        r.images = images || [];
+        remaining--;
+        if (remaining === 0) cb(firstErr, rows);
+      });
+    });
+  };
+
   if (!q || q.trim() === '') {
-    return db.all('SELECT * FROM products ORDER BY created_at DESC LIMIT ?', [limit], cb);
+    return db.all('SELECT * FROM products ORDER BY created_at DESC LIMIT ?', [limit], finishWithRows);
   }
 
   // Build a prefix-style FTS query (controller -> controller*) to increase recall
@@ -199,16 +260,16 @@ function searchProducts(q, limit = 20, cb) {
       const pattern = `%${q}%`;
       const sql = `SELECT * FROM products WHERE title LIKE ? OR condition LIKE ? OR description LIKE ? ORDER BY created_at DESC LIMIT ?`;
       const params = [pattern, pattern, pattern, limit];
-      return db.all(sql, params, cb);
+      return db.all(sql, params, finishWithRows);
     }
 
-    if (rows && rows.length > 0) return cb(null, rows);
+    if (rows && rows.length > 0) return finishWithRows(null, rows);
 
     // Fallback: simple LIKE-based search
     const pattern = `%${q}%`;
     const sql = `SELECT * FROM products WHERE title LIKE ? OR condition LIKE ? OR description LIKE ? ORDER BY created_at DESC LIMIT ?`;
     const params = [pattern, pattern, pattern, limit];
-    db.all(sql, params, cb);
+    db.all(sql, params, finishWithRows);
   });
 }
 
@@ -218,8 +279,37 @@ module.exports = {
   searchProducts,
   // Return products for a given seller
   getProductsBySeller: function(seller_id, cb) {
-    db.all('SELECT * FROM products WHERE seller_id = ? ORDER BY created_at DESC', [seller_id], cb);
+    db.all('SELECT * FROM products WHERE seller_id = ? ORDER BY created_at DESC', [seller_id], (err, rows) => {
+      if (err) return cb(err);
+      if (!rows || rows.length === 0) return cb(null, rows);
+      let remaining = rows.length; let firstErr = null;
+      rows.forEach(r => {
+        getImages(r.id, (gErr, images) => {
+          if (gErr && !firstErr) firstErr = gErr;
+          r.images = images || [];
+          remaining--;
+          if (remaining === 0) cb(firstErr, rows);
+        });
+      });
+    });
   }
+};
+
+// Return free products (price == 0)
+module.exports.getFreeProducts = function(limit = 12, cb) {
+  db.all('SELECT * FROM products WHERE price = 0 ORDER BY created_at DESC LIMIT ?', [limit], (err, rows) => {
+    if (err) return cb(err);
+    if (!rows || rows.length === 0) return cb(null, rows);
+    let remaining = rows.length; let firstErr = null;
+    rows.forEach(r => {
+      getImages(r.id, (gErr, images) => {
+        if (gErr && !firstErr) firstErr = gErr;
+        r.images = images || [];
+        remaining--;
+        if (remaining === 0) cb(firstErr, rows);
+      });
+    });
+  });
 };
 
 // Update a product by id
@@ -250,3 +340,8 @@ module.exports.getFavoritesByUser = getFavoritesByUser;
 
 // Ensure favorites table exists on startup
 ensureFavoritesTable();
+
+// Export image helpers
+module.exports.addImages = addImages;
+module.exports.getImages = getImages;
+module.exports.removeImage = removeImage;

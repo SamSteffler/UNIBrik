@@ -53,6 +53,21 @@
         <button type="button" class="delete-button" @click="handleDelete">Remover produto</button>
       </div>
     </form>
+
+    <section class="images-section">
+      <h3>Imagens do anúncio</h3>
+      <div class="upload-row">
+        <input type="file" ref="fileInput" multiple accept="image/*" />
+        <button @click="uploadImages" class="upload-button">Enviar imagens</button>
+      </div>
+
+      <div class="thumbnails">
+        <div v-for="img in images" :key="img" class="thumb">
+          <img :src="img" alt="" />
+          <button class="thumb-delete" @click="deleteImage(img)">Excluir</button>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -61,6 +76,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { url } from '../services/api';
 import { userState } from '../services/authService';
+import { ref as vueRef } from 'vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -76,6 +92,46 @@ const form = ref({
   price: 0,
   location: 'UFSM'
 });
+
+const images = ref([]);
+const fileInput = vueRef(null);
+
+async function loadImages() {
+  try {
+    const res = await fetch(url(`/api/products/${id}/images`));
+    if (!res.ok) throw new Error('Erro ao carregar imagens');
+    const data = await res.json();
+    images.value = data.images || [];
+  } catch (e) { console.error('loadImages', e); }
+}
+
+async function uploadImages() {
+  const files = fileInput.value?.files;
+  if (!files || files.length === 0) return alert('Selecione pelo menos uma imagem.');
+  const fd = new FormData();
+  for (const f of files) fd.append('images', f);
+  try {
+    const res = await fetch(url(`/api/products/${id}/images`), { method: 'POST', body: fd });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t || 'Upload failed');
+    }
+    const data = await res.json();
+    images.value.push(...(data.images || []));
+    // clear input
+    fileInput.value.value = null;
+    alert('Imagens enviadas');
+  } catch (e) { console.error(e); alert(e.message || 'Erro no upload'); }
+}
+
+async function deleteImage(path) {
+  if (!confirm('Remover esta imagem?')) return;
+  try {
+    const res = await fetch(url(`/api/products/${id}/images`), { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ filename: path.split('/').pop() }) });
+    if (!res.ok) throw new Error('Erro ao remover imagem');
+    images.value = images.value.filter(i => i !== path);
+  } catch (e) { console.error(e); alert(e.message || 'Erro ao excluir imagem'); }
+}
 
 async function load() {
   loading.value = true;
@@ -145,6 +201,7 @@ function goBack() {
 }
 
 onMounted(load);
+onMounted(loadImages);
 </script>
 
 <style scoped>
@@ -158,4 +215,11 @@ input, textarea, select { width:100%; padding:0.6rem; border:1px solid #ccc; bor
 .submit-button { padding:0.75rem 1rem; background:#0984e3; color:#fff; border:none; border-radius:6px }
 .cancel-button { padding:0.6rem 1rem; background:#b2bec3; color:#fff; border:none; border-radius:6px }
 .error { color:#d63031 }
+.images-section { margin-top:1.5rem }
+.upload-row { display:flex; gap:0.5rem; align-items:center }
+.thumbnails { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem }
+.thumb { width:120px; position:relative }
+.thumb img { width:100%; height:80px; object-fit:cover; border-radius:6px }
+.thumb-delete { position:absolute; right:6px; top:6px; background:rgba(0,0,0,0.6); color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px }
+.upload-button { padding:0.5rem 0.75rem; background:#0984e3; color:#fff; border:none; border-radius:6px }
 </style>
