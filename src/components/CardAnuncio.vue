@@ -13,7 +13,7 @@
         <span class="sep" v-if="locationVal"> | {{ locationVal }}</span>
       </p>
 
-      <p class="desc">{{ shortDesc }}</p>
+  <p class="desc" :style="descStyle">{{ shortDesc }}</p>
 
       <p class="price">{{ priceLabel }}</p>
     </div>
@@ -43,7 +43,10 @@ const props = defineProps({
   // layout variant: 'compact' (default) or 'list'
   variant: { type: String, default: 'compact' },
   // whether the card should auto-navigate to product page on click. If false, emits 'card-click'.
-  navigate: { type: Boolean, default: true }
+  navigate: { type: Boolean, default: true },
+  // description styling and truncation controls
+  descMaxChars: { type: Number, default: 100 },
+  descSize: { type: String, default: '0.9rem' }
 })
 
 const emit = defineEmits(['card-click'])
@@ -59,11 +62,24 @@ const imagesVal = computed(() => props.item?.images ?? props.images ?? (props.im
 const conditionVal = computed(() => props.item?.condition ?? props.condition)
 const categoryVal = computed(() => props.item?.category ?? props.category)
 
-const imageSrc = computed(() => (imagesVal.value && imagesVal.value.length ? imagesVal.value[0] : null))
+const imageSrc = computed(() => {
+  if (!imagesVal.value || !imagesVal.value.length) return null
+  
+  let imageUrl = imagesVal.value[0]
+  
+  // Transform backend URLs to work with Vite dev server
+  if (imageUrl && imageUrl.startsWith('http://localhost:3000/')) {
+    // Replace backend URL with Vite dev server base path
+    imageUrl = imageUrl.replace('http://localhost:3000/', '/UNIBrik/')
+  }
+  
+  return imageUrl
+})
 
 const shortDesc = computed(() => {
   const d = descriptionVal.value || ''
-  return d.length > 100 ? d.slice(0, 100) + '...' : d
+  const max = props.descMaxChars ?? 100
+  return d.length > max ? d.slice(0, max) + '...' : d
 })
 
 const priceLabel = computed(() => {
@@ -74,6 +90,8 @@ const priceLabel = computed(() => {
 })
 
 const variantClass = computed(() => (props.variant === 'list' ? 'variant-list' : 'variant-compact'))
+
+const descStyle = computed(() => ({ fontSize: props.descSize }))
 
 function onClick() {
   if (props.navigate && idVal.value) {
