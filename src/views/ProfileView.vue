@@ -202,7 +202,7 @@ const formatCEP = (cep) => {
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #0097B2;
+  border: 3px solid #0097B2;
   box-shadow: 0 4px 12px rgba(0, 151, 178, 0.2);
 }
 
@@ -228,7 +228,7 @@ const formatCEP = (cep) => {
 }
 
 .user-email {
-  color: #666;
+  color: #004451b5;
   font-size: 1.1rem;
   margin: 0;
 }
@@ -269,7 +269,7 @@ const formatCEP = (cep) => {
 }
 
 .info-value {
-  color: #333;
+  color: #004451b5;
   font-size: 1.05rem;
 }
 

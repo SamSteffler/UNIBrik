@@ -35,7 +35,7 @@ const submitSearch = () => {
 
 <template>
   <header class="app-header">
-    <div class="logo">
+    <div class="logo" @click="goToHome">
       <img :src="logo" alt="Logo" />
     </div>
 
@@ -60,9 +60,9 @@ const submitSearch = () => {
         Login ou Cadastre-se
       </RouterLink>
       <RouterLink v-else to="/profile" class="profile-button profile-avatar">
-        <img :src="profileImageUrl" alt="Foto de perfil" class="avatar-img" />
-        <span class="profile-label">Meu Perfil</span>
+        <img :src="profileImageUrl" alt="Foto de perfil" class="avatar-img"><span class="profile-label">Meu Perfil</span>
       </RouterLink>
+
       
       <button class="menu-toggle" @click="isMenuOpen = true">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
@@ -133,21 +133,29 @@ const submitSearch = () => {
 }
 
 .profile-button {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   border: none;
   background-color: #f5f5f5; 
+  justify-content: flex-start;
+  width: 105px;
+  padding-bottom: 0.4rem;
+  padding-top: 0.4rem;
   z-index: 2;
 }
 
 .profile-button:hover {
   background-color: #f5f5f5;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .profile-avatar .avatar-img {
   width: 32px;
   height: 32px;
+  margin-left: -15px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(0,0,0,0.08);
@@ -169,6 +177,7 @@ const submitSearch = () => {
   box-shadow: none;
   background-color: #0097b2;
   transform: scale(1.20);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 </style>
