@@ -86,6 +86,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
@@ -192,14 +193,14 @@ const handleSubmit = async () => {
 <style scoped>
 .create-product { 
   max-width: 800px;
-  margin: 3rem auto;
+  margin: 0rem auto;
   padding: 2rem;
   background-color: #fff;
   border-radius: 24px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.h2 {
+h2 {
   margin-bottom: 1.5rem;
   margin-left: 1rem;
   font-size: 1.5rem;
@@ -210,6 +211,27 @@ const handleSubmit = async () => {
   margin-bottom: 1rem;
   padding-left: 2rem;
   color: #004451;
+}
+
+fieldset {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+legend {
+  padding: 0 0.5rem;
+  font-weight: bold;
+  color: #0097b2;
+  font-size: 1rem;
+}
+
+.button-group {
+  display: flex;
+  align-items:center; 
+  justify-content: center;
+  margin-top: 1.5rem;
 }
 
 label { 
@@ -227,11 +249,6 @@ input, textarea, select {
   font-size: 1rem;          /* mantém tamanho de texto consistente */
 }
 
-.form-grid { 
-  display:flex; 
-  gap:1rem 
-}
-
 .form-grid .form-group { 
   flex:1 
 }
@@ -239,13 +256,15 @@ input, textarea, select {
 .submit-button { 
   margin-top:1rem; 
   padding:0.75rem 1rem; 
-  background:#0984e3; 
+  background:#0984e3;  
   color:#fff; 
   border:none; 
   border-radius: 30px;
-  padding-left: 3rem;
-  padding-right: 3rem;
+  margin-top: 0px;
+  padding-left: 10rem;
+  padding-right: 10rem;
   font-family: 'Plus Jakarta Sans', Times, serif !important;
+  font-size: 1rem;
   font-weight: bold;
   background-color: #0097b2;
 }
