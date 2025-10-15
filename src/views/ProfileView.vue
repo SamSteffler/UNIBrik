@@ -10,6 +10,9 @@ const handleLogout = () => {
 const myAds = () => {
   router.push('/my-ads');
 };
+const favorites = () => {
+  router.push('/favorites');
+};
 </script>
 
 <template>
@@ -18,7 +21,7 @@ const myAds = () => {
       <h3>Minha Conta</h3>
       <ul>
         <li @click="myAds">Meus anúncios</li>
-        <li>Favoritos</li>
+        <li @click="favorites">Favoritos</li>
         <li>Dados cadastrais</li>
         <li class="logout-button" @click="handleLogout">Sair</li>
       </ul>

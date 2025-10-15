@@ -1,9 +1,10 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { url } from '../services/api';
+import { useRoute } from 'vue-router';
+import CardAnuncio from '../components/CardAnuncio.vue'
 
 const route = useRoute();
-const router = useRouter();
 
 const query = ref(route.query.q || '');
 const results = ref([]);
@@ -17,7 +18,7 @@ function doSearch(q) {
   }
   loading.value = true;
   error.value = null;
-  fetch(`http://localhost:3000/api/products?q=${encodeURIComponent(q)}`)
+  fetch(url(`/api/products?q=${encodeURIComponent(q)}`))
     .then(res => res.json())
     .then(data => {
       results.value = data.results || data;
@@ -27,11 +28,6 @@ function doSearch(q) {
       error.value = 'Erro ao buscar produtos.';
     })
     .finally(() => (loading.value = false));
-}
-
-function onSearch() {
-  // Update URL so Header searches and direct links work
-  router.push({ name: 'search', query: { q: query.value } });
 }
 
 // React to query changes in the URL (this makes Header -> /search?q=... work)
@@ -60,15 +56,7 @@ onMounted(() => {
     </div>
 
     <div class="results-grid">
-      <div v-for="item in results" :key="item.id" class="result-card">
-        <div class="result-image" :aria-hidden="true">📦</div>
-        <div class="result-body">
-          <h3>{{ item.title }}</h3>
-          <p class="muted">{{ item.condition || item.category || '' }}</p>
-          <p class="desc">{{ item.description }}</p>
-          <p class="price">R$ {{ item.price }} | {{ item.location }}</p>
-        </div>
-      </div>
+      <CardAnuncio v-for="item in results" :key="item.id" :item="item" variant="list" />
     </div>
   </div>
 </template>
@@ -122,6 +110,7 @@ onMounted(() => {
   border-radius:8px;
   font-size:1.5rem;
 }
+.result-image img { width:100%; height:100%; object-fit:cover; border-radius:8px }
 .result-body h3 { margin: 0 0 0.25rem; }
 .muted { color: #636e72; font-size:0.9rem; margin:0 0 0.5rem; }
 .desc { color:#2d3436; margin:0 0 0.5rem; }
