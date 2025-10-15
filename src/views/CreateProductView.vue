@@ -1,6 +1,6 @@
 <template>
   <div class="create-product">
-    <h2>Registrar produto</h2>
+    <h2 class="h2">Registrar produto</h2>
 
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
@@ -47,7 +47,7 @@
           <select id="location" v-model="form.location">
             <option value="UFSM">UFSM</option>
             <option value="Em casa">Em casa</option>
-            <option value="A definir">A combinar</option>
+            <option value="A Combinar">A combinar</option>
           </select>
         </div>
       </div>
@@ -131,11 +131,68 @@ async function uploadAfterCreate() {
 </script>
 
 <style scoped>
-.create-product { max-width: 700px; margin: 2rem auto; padding:1rem }
-.form-group { margin-bottom: 1rem }
-label { display:block; margin-bottom:0.25rem }
-input, textarea, select { width:100%; padding:0.6rem; border:1px solid #ccc; border-radius:6px }
-.form-grid { display:flex; gap:1rem }
-.form-grid .form-group { flex:1 }
-.submit-button { margin-top:1rem; padding:0.75rem 1rem; background:#0984e3; color:#fff; border:none; border-radius:6px }
+.create-product { 
+  max-width: 800px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.h2 {
+  margin-bottom: 1.5rem;
+  margin-left: 1rem;
+  font-size: 1.5rem;
+  color: #004451;
+}
+
+.form-group { 
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+  color: #004451;
+}
+
+label { 
+  display:block; 
+  margin-bottom:0.25rem 
+}
+
+input, textarea, select { 
+  width: 95%;              /* ocupa toda a largura do container */
+  padding: 0.6rem; 
+  border: 1px solid #ddd; 
+  border-radius: 6px; 
+  box-sizing: border-box;   /* garante que o padding não ultrapasse o 100% */
+  margin-bottom: 0.8rem;    /* dá um espaçamento entre os campos */
+  font-size: 1rem;          /* mantém tamanho de texto consistente */
+}
+
+.form-grid { 
+  display:flex; 
+  gap:1rem 
+}
+
+.form-grid .form-group { 
+  flex:1 
+}
+
+.submit-button { 
+  margin-top:1rem; 
+  padding:0.75rem 1rem; 
+  background:#0984e3; 
+  color:#fff; 
+  border:none; 
+  border-radius: 30px;
+  padding-left: 3rem;
+  padding-right: 3rem;
+  font-family: 'Plus Jakarta Sans', Times, serif !important;
+  font-weight: bold;
+  background-color: #0097b2;
+}
+
+.submit-button:hover {
+  background-color: rgba(0, 113, 133, 1);
+}
+
 </style>

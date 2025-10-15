@@ -45,7 +45,7 @@ const categorias = [
 }
 
 .sidebar li {
-  border-bottom: 2.5px solid #0097b280;
+  border-bottom: 2px solid #0000001e;;
   font-size: 16px;
 }
 

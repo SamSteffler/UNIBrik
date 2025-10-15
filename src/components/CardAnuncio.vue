@@ -8,14 +8,14 @@
     <div class="body">
       <h3 class="title">{{ titleVal }}</h3>
 
+      <p class="price">{{ priceLabel }}</p>
+
+      <p class="desc">{{ shortDesc }}</p>
+
       <p class="meta">
         <span class="cond">{{ conditionVal || categoryVal || '' }}</span>
         <span class="sep" v-if="locationVal"> | {{ locationVal }}</span>
       </p>
-
-  <p class="desc" :style="descStyle">{{ shortDesc }}</p>
-
-      <p class="price">{{ priceLabel }}</p>
     </div>
   </div>
 </template>
@@ -104,23 +104,165 @@ function onClick() {
 
 </script>
 <style scoped>
-.card { background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); display:flex; gap:12px; padding:12px; cursor:pointer }
-.img-container { width:100px; height:80px; border-radius:10px; overflow:hidden; background:#f1f2f6; display:flex; align-items:center; justify-content:center; flex-shrink:0 }
-.img-container img { width:100%; height:100%; object-fit:cover }
-.placeholder { font-size:1.6rem }
-.body { flex:1; display:flex; flex-direction:column; gap:6px }
-.title { margin:0; font-size:1rem; color:#004451 }
-.meta { margin:0; color:#636e72; font-size:0.85rem }
-.desc { margin:0; color:#2d3436; font-size:0.9rem }
-.price { margin:0; color:#0984e3; font-weight:700 }
+.card {
+   background: #fff; 
+   border-radius: 12px; 
+   box-shadow: 0 4px 10px rgba(0,0,0,0.04); 
+   display:flex; 
+   gap:12px; 
+   padding:12px; 
+   cursor:pointer 
+}
 
-/* Compact variant (used on Home view) */
-.variant-compact { flex-direction: column; width: 180px; padding:10px; border-radius:20px }
-.variant-compact .img-container { width:100%; height:120px; border-radius:16px }
-.variant-compact .body { gap:4px }
-.variant-compact .title { font-size:0.95rem }
+.img-container { 
+  width:100px; 
+  height:80px; 
+  border-radius:10px; 
+  overflow:hidden; 
+  background:#f1f2f6; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  flex-shrink:0 
+}
 
-/* List variant (used on Search/MyAds) */
-.variant-list { flex-direction:row; width:100%; padding:12px }
+.img-container img { 
+  width:100%; 
+  height:100%; 
+  object-fit:cover 
+}
+
+.placeholder { 
+  font-size:1.6rem 
+}
+
+.body { 
+  flex:1; 
+  display:flex; 
+  flex-direction:column; 
+  gap:6px 
+}
+
+/* Compact variant (Home) */
+.variant-compact { 
+  position: relative;
+  flex-direction: column; 
+  width: 144px; 
+  padding:8px; 
+  border-radius:16px 
+}
+
+.variant-compact .img-container { 
+  width:100%; 
+  height:96px; 
+  border-radius:13px 
+}
+
+.variant-compact .body { 
+  gap:3px 
+}
+
+.variant-compact .title { 
+  font-size:0.8rem;
+  margin:0; 
+  margin-top: -7px;
+  margin-bottom: -2px;
+  line-height:1.1em;
+  color: #004451;
+  font-weight: bold; 
+}
+
+.variant-compact .meta { 
+  position: absolute;
+  font-size:0.70rem;
+  margin:0; 
+  color: #004451; 
+  font-weight: bold;
+  bottom: 10px;
+}
+
+.variant-compact .desc {
+  margin:0;
+  font-size: 9px;          /* já reduzido para 80% */
+  display: -webkit-box;         /* necessário para line-clamp */
+  -webkit-line-clamp: 2;        /* limita a 2 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;      /* adiciona "..." se cortar */
+  max-height: 2.4em;            /* opcional: controla altura total */
+  margin-bottom: 25px;
+  margin-top: 5px;
+  margin-left: 5px;
+  color: #00445186;
+}
+
+.variant-compact .price { 
+  margin:0; 
+  margin-left: 1px;
+  color: #0097b2; 
+  font-weight:bold;
+  font-size:0.72rem;
+}
+
+
+/* List variant (Search/MyAds) */
+.variant-list { 
+  position: relative;
+  flex-direction:row; 
+  width:100%; 
+  padding:12px 
+}
+
+.variant-list .img-container { 
+  width:35%; 
+  height:100%; 
+  border-radius:13px 
+}
+
+.variant-list .body { 
+  gap:3px 
+}
+
+.variant-list .title { 
+  font-size:18px;
+  margin:0; 
+  margin-bottom: -2px;
+  line-height:1.1em;
+  color: #004451;
+  font-weight: bold; 
+}
+
+.variant-list .meta { 
+  position: absolute;
+  font-size: 13px;
+  margin:0; 
+  color: #004451; 
+  font-weight: bold;
+  bottom: 10px;
+}
+
+.variant-list .desc {
+  margin:0;
+  font-size: 11px;          /* já reduzido para 80% */
+  display: -webkit-box;         /* necessário para line-clamp */
+  -webkit-line-clamp: 2;        /* limita a 2 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;      /* adiciona "..." se cortar */
+  max-height: 2.4em;            /* opcional: controla altura total */
+  margin-bottom: 25px;
+  margin-top: 5px;
+  margin-left: 5px;
+  color: #00445186;
+}
+
+.variant-list .price { 
+  margin:0; 
+  margin-left: 1px;
+  color: #0097b2; 
+  font-weight:bold;
+  font-size:16px;
+}
+
 
 </style>
