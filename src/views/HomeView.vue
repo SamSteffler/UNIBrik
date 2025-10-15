@@ -8,6 +8,7 @@
             v-for="item in freeProducts.slice(0,4)"
             :key="item.id"
             :item="item"
+            desc-size="0.75rem"
           />
         </div>
       </div>
@@ -19,6 +20,7 @@
             v-for="item in recentProducts.slice(0,4)"
             :key="item.id"
             :item="item"
+            desc-size="0.75rem"
           />
         </div>
         <div class="explorar-wrapper">

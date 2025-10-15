@@ -27,6 +27,7 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
             address_cep TEXT,
             address_street TEXT,
             address_number TEXT,
+            address_complement TEXT,
             address_district TEXT,
             address_city TEXT,
             address_uf TEXT,

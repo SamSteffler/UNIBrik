@@ -14,6 +14,7 @@
         :key="item.id"
         :item="item"
         variant="list"
+        desc-size="0.75rem"
         :navigate="false"
         @card-click="goEdit"
       />

@@ -34,7 +34,7 @@ app.post("/api/auth/register", async (req, res) => {
     const { 
             name, email, password, google_sub, picture,
             birth_date, phone, address_cep, address_street, 
-            address_number, address_district, address_city, address_uf
+            address_number, address_complement, address_district, address_city, address_uf
         } = req.body;
 
     if (!name || !email) {
@@ -51,14 +51,14 @@ app.post("/api/auth/register", async (req, res) => {
     const sql = `INSERT INTO users (
         public_id, name, email, password, google_sub, picture,
         birth_date, phone, address_cep, address_street, address_number,
-        address_district, address_city, address_uf
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        address_complement, address_district, address_city, address_uf
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
     // 3. Adicione os novos parâmetros na ordem correta
     const params = [
         publicId, name, email, hashedPassword, google_sub, picture,
         birth_date, phone, address_cep, address_street, address_number,
-        address_district, address_city, address_uf
+        address_complement, address_district, address_city, address_uf
     ];
     
     db.run(sql, params, function (err) {
@@ -123,6 +123,117 @@ app.post("/api/auth/google", (req, res) => {
             // Usuário não encontrado, informa o frontend para redirecionar ao cadastro
             return res.status(404).json({ message: "Usuário não encontrado." });
         }
+    });
+});
+
+// 5. ROTA PARA BUSCAR DADOS DO USUÁRIO POR ID
+app.get("/api/auth/user/:id", (req, res) => {
+    const userId = req.params.id;
+    
+    const sql = "SELECT * FROM users WHERE id = ?";
+    db.get(sql, [userId], (err, user) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        if (!user) {
+            return res.status(404).json({ error: "Usuário não encontrado." });
+        }
+        
+        // Remove a senha do objeto antes de enviar
+        const { password, ...userToSend } = user;
+        res.status(200).json(userToSend);
+    });
+});
+
+// 6. ROTA PARA ATUALIZAR DADOS DO USUÁRIO
+app.put("/api/auth/user/:id", async (req, res) => {
+    const userId = req.params.id;
+    const {
+        name, password, birth_date, phone,
+        address_cep, address_street, address_number,
+        address_complement, address_district, address_city, address_uf
+    } = req.body;
+
+    // Verifica se o usuário existe
+    db.get("SELECT * FROM users WHERE id = ?", [userId], async (err, user) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        if (!user) {
+            return res.status(404).json({ error: "Usuário não encontrado." });
+        }
+
+        // Prepara os campos para atualização
+        let updateFields = [];
+        let params = [];
+
+        if (name) {
+            updateFields.push("name = ?");
+            params.push(name);
+        }
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            updateFields.push("password = ?");
+            params.push(hashedPassword);
+        }
+        if (birth_date !== undefined) {
+            updateFields.push("birth_date = ?");
+            params.push(birth_date);
+        }
+        if (phone !== undefined) {
+            updateFields.push("phone = ?");
+            params.push(phone);
+        }
+        if (address_cep !== undefined) {
+            updateFields.push("address_cep = ?");
+            params.push(address_cep);
+        }
+        if (address_street !== undefined) {
+            updateFields.push("address_street = ?");
+            params.push(address_street);
+        }
+        if (address_number !== undefined) {
+            updateFields.push("address_number = ?");
+            params.push(address_number);
+        }
+        if (address_complement !== undefined) {
+            updateFields.push("address_complement = ?");
+            params.push(address_complement);
+        }
+        if (address_district !== undefined) {
+            updateFields.push("address_district = ?");
+            params.push(address_district);
+        }
+        if (address_city !== undefined) {
+            updateFields.push("address_city = ?");
+            params.push(address_city);
+        }
+        if (address_uf !== undefined) {
+            updateFields.push("address_uf = ?");
+            params.push(address_uf);
+        }
+
+        if (updateFields.length === 0) {
+            return res.status(400).json({ error: "Nenhum campo para atualizar." });
+        }
+
+        params.push(userId);
+        const sql = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
+
+        db.run(sql, params, function(err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            // Retorna o usuário atualizado
+            db.get("SELECT * FROM users WHERE id = ?", [userId], (err, updatedUser) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                const { password, ...userToSend } = updatedUser;
+                res.status(200).json({ message: "Dados atualizados com sucesso.", user: userToSend });
+            });
+        });
     });
 }); 
 
@@ -271,6 +382,8 @@ app.get('/api/users/:id/favorites', (req, res) => {
     const offset = parseInt(req.query.offset || '0', 10);
     products.getFavoritesByUser(userId, limit, offset, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
+        const base = `${req.protocol}://${req.get('host')}`;
+        (rows || []).forEach(r => { r.images = (r.images || []).map(p => `${base}${p}`); });
         res.json({ results: rows });
     });
 });
