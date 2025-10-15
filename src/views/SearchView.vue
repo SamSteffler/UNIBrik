@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue';
 import { url } from '../services/api';
 import { useRoute } from 'vue-router';
 import CardAnuncio from '../components/CardAnuncio.vue'
+import SearchFilters from '../components/SearchFilters.vue'
 
 const route = useRoute();
 
@@ -10,18 +11,37 @@ const query = ref(route.query.q || '');
 const results = ref([]);
 const loading = ref(false);
 const error = ref(null);
+const filters = ref({
+  minPrice: 0,
+  maxPrice: 5000,
+  selectedCategories: [],
+  selectedLocations: [],
+  selectedConditions: [],
+  sortBy: 'created_at_desc'
+});
 
-function doSearch(q) {
-  if (!q || q.trim() === '') {
-    results.value = [];
-    return;
-  }
+function doSearch(searchQuery = '') {
   loading.value = true;
   error.value = null;
-  fetch(url(`/api/products?q=${encodeURIComponent(q)}`))
+  
+  const searchFilters = {
+    ...filters.value,
+    q: searchQuery || query.value
+  };
+
+  console.log('Fazendo busca com filtros:', searchFilters);
+
+  fetch(url('/api/products/search'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(searchFilters)
+  })
     .then(res => res.json())
     .then(data => {
-      results.value = data.results || data;
+      results.value = data.results || [];
+      console.log('Resultados da busca:', results.value);
     })
     .catch(err => {
       console.error('Search error', err);
@@ -33,91 +53,283 @@ function doSearch(q) {
 // React to query changes in the URL (this makes Header -> /search?q=... work)
 watch(() => route.query.q, (newQ) => {
   query.value = newQ || '';
-  if (query.value) doSearch(query.value);
-  else results.value = [];
+  doSearch();
 });
 
+// Função para lidar com mudanças nos filtros
+function onFiltersChanged(newFilters) {
+  filters.value = newFilters;
+  console.log('Filtros alterados:', newFilters);
+  doSearch(); // Executar busca quando filtros mudarem
+}
+
+// Função para favoritar (placeholder)
+function toggleFavorite(productId) {
+  console.log('Toggle favorite for product:', productId);
+  // Implementar lógica de favoritos aqui
+}
+
 onMounted(() => {
-  if (query.value) doSearch(query.value);
+  doSearch();
 });
 
 </script>
 
 <template>
-  <div class="search-page">
-    <h1>Resultados da Pesquisa - {{ query }}</h1>
+  <div class="search-container">
+    <!-- Sidebar com Filtros -->
+    <aside class="sidebar">
+      <SearchFilters 
+        v-model="filters" 
+        @filtersChanged="onFiltersChanged"
+      />
+    </aside>
 
-    <!-- Search is performed from the header; this view reacts to ?q= in the URL -->
+    <!-- Área principal com resultados -->
+    <main class="main-content">
+      <!-- Status da busca -->
+      <div class="search-status">
+        <p v-if="loading">Buscando produtos...</p>
+        <p v-if="error" class="error">{{ error }}</p>
+        <p v-if="!loading && !error && results.length === 0 && query">
+          Nenhum resultado encontrado para "{{ query }}"
+        </p>
+        <p v-if="!loading && !error && results.length > 0">
+          {{ results.length }} produto{{ results.length !== 1 ? 's' : '' }} encontrado{{ results.length !== 1 ? 's' : '' }}
+          {{ query ? ` para "${query}"` : '' }}
+        </p>
+      </div>
 
-    <div class="status">
-      <p v-if="loading">Buscando...</p>
-      <p v-if="error" class="error">{{ error }}</p>
-      <p v-if="!loading && !error && results.length === 0">Nenhum resultado encontrado.</p>
-    </div>
+      <!-- Grid de produtos -->
+      <div class="products-grid">
+        <div
+          v-for="item in results"
+          :key="item.id"
+          class="product-card"
+          @click="$router.push(`/product/${item.id}`)"
+        >
+          <div class="product-image">
+            <img 
+              v-if="item.images && item.images.length > 0" 
+              :src="item.images[0]" 
+              :alt="item.title"
+            />
+            <div v-else class="no-image">📦</div>
+          </div>
+          
+          <div class="product-info">
+            <h3 class="product-title">{{ item.title }}</h3>
+            <p class="product-price">
+              <strong v-if="item.price === 0">Grátis</strong>
+              <span v-else>R$ {{ item.price }}</span>
+            </p>
+            <p class="product-meta">{{ item.condition || item.category }}</p>
+            <p class="product-location">{{ item.location }}</p>
+          </div>
 
-    <div class="results-grid">
-      <CardAnuncio v-for="item in results" :key="item.id" :item="item" variant="list" />
-    </div>
+          <!-- Heart icon for favorites -->
+          <button class="favorite-btn" @click.stop="toggleFavorite(item.id)">
+            <span class="heart">♡</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading spinner -->
+      <div v-if="loading" class="loading-spinner">
+        <div class="spinner"></div>
+      </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.search-page {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 1rem;
-}
-.search-box {
+.search-container {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
 }
-.search-box input[type="search"] {
+
+.sidebar {
+  flex-shrink: 0;
+}
+
+.main-content {
   flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  min-width: 0;
 }
-.search-box button {
-  padding: 0.75rem 1rem;
-  background: #0984e3;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+
+.search-status {
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 0.95rem;
 }
-.results-grid {
+
+.search-status .error {
+  color: #d63031;
+}
+
+.products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  gap: 20px;
 }
-.result-card {
-  background: white;
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-.result-image {
-  width: 64px;
-  height: 64px;
-  background: #f1f2f6;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:8px;
-  font-size:1.5rem;
-}
-.result-image img { width:100%; height:100%; object-fit:cover; border-radius:8px }
-.result-body h3 { margin: 0 0 0.25rem; }
-.muted { color: #636e72; font-size:0.9rem; margin:0 0 0.5rem; }
-.desc { color:#2d3436; margin:0 0 0.5rem; }
-.price { font-weight:700; color:#0984e3 }
-.error { color: #d63031; }
 
-@media (max-width:600px){
-  .results-grid { grid-template-columns: 1fr; }
+.product-card {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.product-image {
+  width: 100%;
+  height: 160px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  font-size: 2rem;
+  color: #ccc;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c9aa0;
+  margin: 0 0 6px 0;
+}
+
+.product-price strong {
+  color: #27ae60;
+}
+
+.product-meta {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 4px 0;
+}
+
+.product-location {
+  font-size: 0.85rem;
+  color: #999;
+  margin: 0;
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-btn:hover {
+  background: #f8f9fa;
+  border-color: #2c9aa0;
+}
+
+.heart {
+  font-size: 1.2rem;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.favorite-btn:hover .heart {
+  color: #2c9aa0;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2c9aa0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .search-container {
+    flex-direction: column;
+    padding: 0 15px;
+  }
+  
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-card {
+    padding: 12px;
+  }
+  
+  .product-image {
+    height: 140px;
+  }
 }
 </style>
