@@ -128,17 +128,27 @@ function createProduct(product, cb) {
 
 // --- Favorites helpers ---
 function ensureFavoritesTable() {
-  db.run(`CREATE TABLE IF NOT EXISTS favorites (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, product_id)
-  )`, (err) => {
-    if (err) console.log('Could not create favorites table:', err.message);
+  db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS favorites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, product_id)
+    )`, (err) => {
+      if (err) {
+        console.log('Could not create favorites table:', err.message);
+      } else {
+        console.log("Tabela 'favorites' criada ou já existente.");
+      }
+    });
+    db.run(`CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id)`, (err) => {
+      if (err) console.log('Could not create index on favorites(user_id):', err.message);
+    });
+    db.run(`CREATE INDEX IF NOT EXISTS idx_favorites_product ON favorites(product_id)`, (err) => {
+      if (err) console.log('Could not create index on favorites(product_id):', err.message);
+    });
   });
-  db.run(`CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id)`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_favorites_product ON favorites(product_id)`);
 }
 
 // idempotent create
@@ -175,13 +185,19 @@ function getFavoritesByUser(user_id, limit = 50, offset = 0, cb) {
 
 // --- Images helpers ---
 // We'll store image paths in a simple images table linked to products
-db.run(`CREATE TABLE IF NOT EXISTS product_images (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  product_id INTEGER NOT NULL,
-  path TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)`, (err) => {
-  if (err) console.log('Could not create product_images table:', err.message);
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS product_images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL,
+    path TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`, (err) => {
+    if (err) {
+      console.log('Could not create product_images table:', err.message);
+    } else {
+      console.log("Tabela 'product_images' criada ou já existente.");
+    }
+  });
 });
 
 function addImages(product_id, paths, cb) {
@@ -338,10 +354,12 @@ module.exports.deleteFavorite = deleteFavorite;
 module.exports.isFavorited = isFavorited;
 module.exports.getFavoritesByUser = getFavoritesByUser;
 
-// Ensure favorites table exists on startup
-ensureFavoritesTable();
-
 // Export image helpers
 module.exports.addImages = addImages;
 module.exports.getImages = getImages;
 module.exports.removeImage = removeImage;
+
+// Ensure favorites table exists on startup (after products table is ready)
+db.serialize(() => {
+  ensureFavoritesTable();
+});
