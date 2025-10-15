@@ -298,7 +298,7 @@ const handleCancel = () => {
   margin: 3rem auto;
   padding: 2rem;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 24px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -317,7 +317,7 @@ fieldset {
 legend {
   padding: 0 0.5rem;
   font-weight: bold;
-  color: #004451;
+  color: #0097b2;
 }
 
 .form-row {
@@ -341,13 +341,13 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
-  color: #333;
+  color: #004451;
 }
 
 input {
   width: 90%;
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
 }
@@ -367,16 +367,19 @@ input:focus {
 .info-text {
   display: block;
   margin-top: 0.5rem;
-  color: #666;
-  font-size: 0.875rem;
+  color: #00445166;
+  padding-left: 0.25rem;
+  font-size: 0.80rem;
   font-style: italic;
 }
 
 .helper-text {
   display: block;
   margin-top: 0.25rem;
-  color: #666;
-  font-size: 0.875rem;
+  color: #00445166;
+  padding-left: 0.25rem;
+  font-size: 0.80rem;
+  font-style: italic;
 }
 
 .error-message {
@@ -406,20 +409,26 @@ input:focus {
 }
 
 .cancel-button {
-  background-color: #f2f2f2;
-  color: #333;
+  border-radius: 30px;
+  font-family: 'Plus Jakarta Sans', Times, serif !important;
+  font-weight: bold;
+  background-color: #e7e7e7ff;
+  color: #4a4a4aff;
 }
 
 .cancel-button:hover {
-  background-color: #e0e0e0;
+  background-color: #c5c5c5ff;
 }
 
 .submit-button {
-  background-color: #0097B2;
+  border-radius: 30px;
+  font-family: 'Plus Jakarta Sans', Times, serif !important;
+  font-weight: bold;
+  background-color: #0097b2;
   color: white;
 }
 
 .submit-button:hover {
-  background-color: #007a8f;
+  background-color: rgba(0, 113, 133, 1);
 }
 </style>

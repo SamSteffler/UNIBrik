@@ -9,29 +9,35 @@
             <img :src="selectedImage" alt="Produto" />
           </template>
           <span v-else>📦</span>
+
+          <!-- gallery abaixo da imagem principal -->
+          <div v-if="product && product.images && product.images.length" class="gallery">
+            <div class="thumbs">
+              <button v-for="(img,i) in product.images" :key="img"
+                      class="thumb-btn"
+                      :class="{active: selectedImage === img}"
+                      @click="selectImage(img)">
+                <img :src="img" alt="thumb" />
+              </button>
+            </div>
+          </div>
         </div>
+
         <div class="info">
           <div class="title-row">
             <h1>{{ product.title }}</h1>
-            <button class="star" :class="{active: favorited}" @click="toggleFavorite">
-              <span v-if="favorited">★</span>
-              <span v-else>☆</span>
-            </button>
           </div>
-        <p class="muted">{{ product.condition }} | {{ product.category }} | {{ product.location }}</p>
-        <p class="desc">{{ product.description }}</p>
-        <p class="price"> <strong v-if="product.price === 0">Grátis</strong><span v-else>R$ {{ product.price }}</span></p>
-        <p class="meta">Anúncio criado em: {{ formatDate(product.created_at) }}</p>
-  <p class="meta">Vendedor: {{ product.seller_name || product.seller_id }}</p>
-      </div>
-    </div>
-    
-    <div v-if="product && product.images && product.images.length" class="gallery">
-      <div class="thumbs">
-        <button v-for="(img,i) in product.images" :key="img" class="thumb-btn" :class="{active: selectedImage === img}" @click="selectImage(img)">
-          <img :src="img" alt="thumb" />
+          <p class="price"> <strong v-if="product.price === 0">Grátis</strong><span v-else>R$ {{ product.price }}</span></p>
+          <p class="muted">{{ product.condition }} | {{ product.category }} | {{ product.location }}</p>
+          <p class="desc">{{ product.description }}</p>
+          <p class="anuncio">Anúncio criado em: {{ formatDate(product.created_at) }}</p>
+          <p class="vendedor">Vendedor: {{ product.seller_name || product.seller_id }}</p>
+        </div>
+        
+        <button class="star" :class="{active: favorited}" @click="toggleFavorite">
+          <span v-if="favorited">★</span>
+          <span v-else>☆</span>
         </button>
-      </div>
     </div>
   </div>
 </template>
@@ -121,19 +127,156 @@ function selectImage(img) {
 </script>
 
 <style scoped>
-.product-page { max-width:900px; margin:2rem auto; padding:1rem }
-.product-card { display:flex; gap:1rem; background:white; padding:1rem; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.06) }
-.image { width:160px; height:160px; background:#f1f2f6; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:3rem }
-.image img { width:100%; height:100%; object-fit:cover; border-radius:8px }
-.gallery { max-width: 900px; margin: 1rem auto 0; padding: 0 1rem }
-.thumbs { display:flex; gap:0.5rem; align-items:center }
-.thumb-btn { border: none; padding:0; background: transparent; cursor:pointer; border-radius:6px; overflow:hidden }
-.thumb-btn img { width:80px; height:60px; object-fit:cover; display:block; border-radius:6px; border:2px solid transparent }
-.thumb-btn.active img { border-color: #0984e3 }
-.info h1 { margin:0 0 0.5rem }
-.muted { color:#636e72; margin-bottom:0.75rem }
-.desc { margin-bottom:1rem }
-.price { color:#0984e3; font-weight:700; margin-bottom:0.5rem }
-.meta { color:#95a5a6; font-size:0.9rem }
-.error { color:#d63031 }
+.product-page { 
+  max-width:900px; 
+  margin:2rem auto; 
+  padding:1rem 
+}
+
+.product-card { 
+  position: relative;
+  display:flex; 
+  object-fit:cover; 
+  border-bottom:70px solid #f2f2f2;
+  gap:1rem; 
+  background: #f2f2f2; 
+  padding:1rem; 
+  border-radius:20px; 
+  box-shadow:0 6px 16px rgba(0,0,0,0.2) 
+}
+
+.product-card .image {
+  display: flex;
+  flex-direction: column; /* força empilhamento vertical */
+  align-items: center;
+  width:500px; 
+  height:375px; 
+  background: #f2f2f2; 
+  display:block; 
+  align-items:center; 
+  justify-content:center; 
+  border-radius:18px; 
+  font-size:3rem 
+}
+
+.product-card .gallery {
+  max-width: 900px; 
+}
+
+.product-card .thumbs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center; /* centraliza as miniaturas */
+}
+
+.image img { 
+  width: 500px; 
+  height: 375px; 
+  object-fit:cover; 
+  border-radius:18px 
+}
+
+.thumb-btn { 
+  border: none; 
+  padding:0; 
+  background: transparent; 
+  cursor:pointer; 
+  border-radius:6px; 
+  overflow:hidden 
+}
+
+.thumb-btn img { 
+  width:80px; 
+  height:60px; 
+  object-fit:cover; 
+  display:block; 
+  border-radius:6px; 
+  border:2px solid transparent;
+}
+
+.thumb-btn.active img { 
+  border-color: #4888b9ff;
+  border-width:3px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;        /* alinha verticalmente o título e o botão */
+  justify-content: space-between; /* título à esquerda, botão à direita */
+  line-height: 1.5em;
+  padding-top: 0.2rem;
+  margin-bottom: -15px;
+  gap: 0.5rem;                /* espaço entre os dois */
+}
+
+.title-row h1 {
+  margin: 0;                  /* remove espaçamento padrão */
+  font-size: 1.5rem;          /* ajuste opcional */
+  flex: 1;                    /* faz o título ocupar o espaço restante */
+}
+
+.star {
+  background: none;
+  border: none;
+  position: absolute;
+  top: 12px;       /* distância do topo do card */
+  right: 20px;
+  font-size: 1.8rem;          /* tamanho da estrela */
+  cursor: pointer;
+  color: #ccc;
+  transition: color 0.2s;
+}
+
+.star.active {
+  color: gold;                /* estrela favoritada */
+}
+
+.star:hover {
+  transform: scale(1.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: gold;                /* destaque ao passar o mouse */
+}
+
+.muted { 
+  color: #636e72; 
+  margin-bottom:0.75rem 
+}
+
+.desc { 
+  margin-bottom:1rem;
+  font-size: 12px;
+  margin-left: 10px;
+  line-height: 1.6em;
+  color: #00445180;
+}
+
+.price { 
+  color: #0984e3; 
+  font-weight:700; 
+  margin-bottom: -10px;
+  font-size:22px;
+}
+
+.anuncio { 
+  position: absolute;
+  color: #004451ff; 
+  gap:4px;  
+  font-size: 12px;
+  bottom: -20px;
+  right: 25px;
+}
+
+.vendedor { 
+  position: absolute;
+  color: #004451ff; 
+  gap:4px;  
+  font-size: 12px;
+  bottom: -40px;
+  right: 25px;
+}
+
+.error { 
+  color: #d63031 
+  }
+
 </style>

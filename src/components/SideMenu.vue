@@ -124,6 +124,10 @@ const handleLogout = () => {
   transition: background-color 0.2s;
 }
 
+.menu-nav li:last-child a {
+  color: #ca0000ff;
+}
+
 .menu-nav li a:hover {
   background-color: #f5f5f5;
 }

@@ -64,14 +64,14 @@ onMounted(() => {
 <style scoped>
 .search-page {
   max-width: 1000px;
-  margin: 2rem auto;
-  padding: 1rem;
+  margin: 1rem auto;
+  
 }
 .search-box {
   display: flex;
-  gap: 0.5rem;
   margin-bottom: 1rem;
 }
+
 .search-box input[type="search"] {
   flex: 1;
   padding: 0.75rem;
@@ -116,6 +116,45 @@ onMounted(() => {
 .desc { color:#2d3436; margin:0 0 0.5rem; }
 .price { font-weight:700; color:#0984e3 }
 .error { color: #d63031; }
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.results-grid > ::v-deep(.card):hover {
+  transform: scale(1.03);
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+::v-deep(.card) {
+  background-color: #f2f2f2;
+  height: 100px;
+  width: 300px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+::v-deep(.card .title) {
+  font-size: 15px; /* tamanho que você quiser */
+  display: -webkit-box;         /* necessário para line-clamp */
+  -webkit-line-clamp: 1;        /* limita a 2 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+::v-deep(.card .price) {
+  font-size: 14px; /* tamanho que você quiser */
+}
+
+::v-deep(.card .desc) {
+  margin-top: 10px;
+  font-size: 11px; /* tamanho que você quiser */
+}
+
 
 @media (max-width:600px){
   .results-grid { grid-template-columns: 1fr; }

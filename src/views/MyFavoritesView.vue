@@ -1,10 +1,10 @@
 <template>
   <div class="favorites-page">
-    <h2>Meus Favoritos</h2>
+    <h2 class="h2">Meus Favoritos</h2>
     <div v-if="loading">Carregando...</div>
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="results.length === 0">Nenhum favorito encontrado. Escolha os seus anúncios favoritos e eles aparecerão aqui!</div>
-    <div class="results-grid">
+    <div class="cards">
       <CardAnuncio
         v-for="item in results"
         :key="item.id"
@@ -53,6 +53,34 @@ onMounted(load);
 </script>
 
 <style scoped>
-.results-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem }
-.error { color:#d63031 }
+.h2 {
+  font-size: 2rem;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+::v-deep(.card) {
+  background-color: #f2f2f2;
+  height: 120px;
+  width: 350px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.cards > ::v-deep(.card):hover {
+  transform: scale(1.05);
+  box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 </style>
