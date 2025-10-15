@@ -278,17 +278,18 @@ watch(() => props.modelValue, (newValue) => {
   position: relative;
   height: 40px;
   margin-bottom: 12px;
-  /* padding removido para corrigir alinhamento */
+  padding: 0;
 }
 
 .slider-track {
   position: absolute;
-  width: calc(100% - 28px);
+  width: calc(100% - 24px);
   height: 6px;
   background: #B8B8B8;
   border-radius: 3px;
   top: 17px;
-  left: 14px;
+  left: 12px;
+  right: 12px;
   z-index: 1;
 }
 
@@ -298,14 +299,14 @@ watch(() => props.modelValue, (newValue) => {
   background: #2E9AA0;
   border-radius: 3px;
   top: 17px;
+  left: 12px;
   z-index: 2;
 }
 
 .slider {
   position: absolute;
-  /* Largura e posição ajustadas para alinhar com a trilha */
-  width: calc(100% - 28px);
-  left: 14px;
+  width: calc(100% + 8px);
+  left: -4px;
   height: 40px;
   background: transparent;
   outline: none;
@@ -313,22 +314,25 @@ watch(() => props.modelValue, (newValue) => {
   appearance: none;
   pointer-events: none;
   top: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #2E9AA0;
   cursor: pointer;
   pointer-events: all;
   position: relative;
   z-index: 4;
-  border: 5px solid #fff;
+  border: 6px solid #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: transform 0.1s ease;
+  margin-top: -7px;
 }
 
 .slider::-webkit-slider-thumb:hover {
@@ -341,17 +345,18 @@ watch(() => props.modelValue, (newValue) => {
 }
 
 .slider::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #2E9AA0;
   cursor: pointer;
   pointer-events: all;
   position: relative;
   z-index: 4;
-  border: 5px solid #fff;
+  border: 6px solid #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: transform 0.1s ease;
+  margin-top: -7px;
 }
 
 .slider::-moz-range-thumb:hover {
