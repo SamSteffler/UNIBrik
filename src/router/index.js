@@ -10,6 +10,7 @@ import ProductView from '../views/ProductView.vue'
 import EditProductView from '../views/EditProductView.vue'
 import MyFavoritesView from '../views/MyFavoritesView.vue'
 import EditProfileView from '../views/EditProfileView.vue'
+import TestFiltersView from '../views/TestFiltersView.vue'
 import { userState } from '../services/authService';
 
 const router = createRouter({
