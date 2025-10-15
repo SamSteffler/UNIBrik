@@ -59,7 +59,6 @@
       <h3>Anexar imagens (opcional)</h3>
       <div class="upload-row">
         <input type="file" ref="fileInput" multiple accept="image/*" />
-        <button @click="uploadAfterCreate" class="upload-button">Enviar imagens após criar</button>
       </div>
       <div class="thumbnails">
         <div v-for="img in images" :key="img" class="thumb">

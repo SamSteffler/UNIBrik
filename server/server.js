@@ -271,6 +271,8 @@ app.get('/api/users/:id/favorites', (req, res) => {
     const offset = parseInt(req.query.offset || '0', 10);
     products.getFavoritesByUser(userId, limit, offset, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
+        const base = `${req.protocol}://${req.get('host')}`;
+        (rows || []).forEach(r => { r.images = (r.images || []).map(p => `${base}${p}`); });
         res.json({ results: rows });
     });
 });

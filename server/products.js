@@ -11,7 +11,7 @@ db.run(`CREATE TABLE IF NOT EXISTS products (
   description TEXT,
   price REAL DEFAULT 0,
   seller_id INTEGER,
-  location TEXT DEFAULT 'UFSM' CHECK(location IN ('UFSM', 'Em casa')),
+  location TEXT DEFAULT 'UFSM' CHECK(location IN ('UFSM', 'Em casa', 'A combinar')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`, (err) => {
     if (err) {
@@ -170,7 +170,19 @@ function isFavorited(user_id, product_id, cb) {
 
 function getFavoritesByUser(user_id, limit = 50, offset = 0, cb) {
   const sql = `SELECT p.* FROM favorites f JOIN products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?`;
-  db.all(sql, [user_id, limit, offset], cb);
+  db.all(sql, [user_id, limit, offset], (err, rows) => {
+    if (err) return cb(err);
+    if (!rows || rows.length === 0) return cb(null, rows);
+    let remaining = rows.length; let firstErr = null;
+    rows.forEach(r => {
+      getImages(r.id, (gErr, images) => {
+        if (gErr && !firstErr) firstErr = gErr;
+        r.images = images || [];
+        remaining--;
+        if (remaining === 0) cb(firstErr, rows);
+      });
+    });
+  });
 }
 
 // --- Images helpers ---

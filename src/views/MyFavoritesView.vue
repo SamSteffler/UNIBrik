@@ -5,35 +5,26 @@
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="results.length === 0">Nenhum favorito encontrado. Escolha os seus anúncios favoritos e eles aparecerão aqui!</div>
     <div class="results-grid">
-        <div v-for="item in results" :key="item.id" class="result-card" @click="goToProduct(item.id)">
-        <div class="result-image">
-          <img v-if="item.images && item.images.length" :src="item.images[0]" alt="" />
-          <span v-else>📦</span>
-        </div>
-        <div class="result-body">
-          <h3>{{ item.title }}</h3>
-          <p class="muted">{{ item.condition || item.category }}</p>
-          <p class="price"><span v-if="item.price===0">Grátis</span><span v-else>R$ {{ item.price }}</span></p>
-        </div>
-      </div>
+      <CardAnuncio
+        v-for="item in results"
+        :key="item.id"
+        :item="item"
+        variant="list"
+        desc-size="0.75rem"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { userState } from '../services/authService';
 import { url } from '../services/api';
+import CardAnuncio from '../components/CardAnuncio.vue'
 
-const router = useRouter();
 const results = ref([]);
 const loading = ref(false);
 const error = ref(null);
-
-function goToProduct(id) {
-  router.push({ name: 'product', params: { id } });
-}
 
 async function load() {
   if (!userState.user) { error.value = 'Você precisa estar logado.'; return; }
@@ -41,7 +32,19 @@ async function load() {
   try {
     const res = await fetch(url(`/api/users/${userState.user.id}/favorites`));
     const data = await res.json();
-    results.value = data.results || [];
+    // Ensure each item has images; if backend didn't include them, fetch per-product as a fallback
+    const items = data.results || [];
+    const withImages = await Promise.all(items.map(async (it) => {
+      if (it.images && it.images.length) return it;
+      try {
+        const ir = await fetch(url(`/api/products/${it.id}/images`));
+        const idata = await ir.json();
+        return { ...it, images: (idata.images || []) };
+      } catch (e) {
+        return it;
+      }
+    }));
+    results.value = withImages;
   } catch (e) { console.error(e); error.value = 'Erro ao carregar favoritos.' }
   finally { loading.value = false }
 }
@@ -51,9 +54,5 @@ onMounted(load);
 
 <style scoped>
 .results-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem }
-.result-card { background:white; padding:1rem; border-radius:8px; cursor:pointer }
-.muted { color:#636e72 }
-.price { color:#0984e3 }
 .error { color:#d63031 }
-.result-image img { width:64px; height:64px; object-fit:cover; border-radius:8px }
 </style>
