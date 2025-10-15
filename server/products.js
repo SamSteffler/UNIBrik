@@ -257,6 +257,107 @@ function getProductById(id, cb) {
   });
 }
 
+// Advanced search with filters
+function searchProductsWithFilters(filters, cb) {
+  const finishWithRows = (err, rows) => {
+    if (err) return cb(err);
+    // attach images to each row
+    if (!rows || rows.length === 0) return cb(null, rows);
+    let remaining = rows.length; let firstErr = null;
+    rows.forEach(r => {
+      getImages(r.id, (gErr, images) => {
+        if (gErr && !firstErr) firstErr = gErr;
+        r.images = images || [];
+        remaining--;
+        if (remaining === 0) cb(firstErr, rows);
+      });
+    });
+  };
+
+  // Build dynamic SQL query
+  let sql = 'SELECT * FROM products WHERE 1=1';
+  let params = [];
+
+  // Text search
+  if (filters.q && filters.q.trim() !== '') {
+    const pattern = `%${filters.q}%`;
+    sql += ' AND (title LIKE ? OR condition LIKE ? OR description LIKE ?)';
+    params.push(pattern, pattern, pattern);
+  }
+
+  // Price range filters
+  if (filters.minPrice !== undefined && filters.minPrice !== null && filters.minPrice > 0) {
+    sql += ' AND price >= ?';
+    params.push(filters.minPrice);
+  }
+  if (filters.maxPrice !== undefined && filters.maxPrice !== null && filters.maxPrice < 5000) {
+    sql += ' AND price <= ?';
+    params.push(filters.maxPrice);
+  }
+
+  // Category filters
+  if (filters.selectedCategories && filters.selectedCategories.length > 0) {
+    const placeholders = filters.selectedCategories.map(() => '?').join(',');
+    sql += ` AND category IN (${placeholders})`;
+    params.push(...filters.selectedCategories);
+  }
+
+  // Location filters
+  if (filters.selectedLocations && filters.selectedLocations.length > 0) {
+    const locationMap = {
+      'Retirada na UFSM': 'UFSM',
+      'Retirada em casa': 'Em casa'
+    };
+    const mappedLocations = filters.selectedLocations.map(loc => locationMap[loc] || loc);
+    const placeholders = mappedLocations.map(() => '?').join(',');
+    sql += ` AND location IN (${placeholders})`;
+    params.push(...mappedLocations);
+  }
+
+  // Condition filters
+  if (filters.selectedConditions && filters.selectedConditions.length > 0) {
+    const placeholders = filters.selectedConditions.map(() => '?').join(',');
+    sql += ` AND condition IN (${placeholders})`;
+    params.push(...filters.selectedConditions);
+  }
+
+  // Sorting
+  let orderBy = 'ORDER BY created_at DESC';
+  if (filters.sortBy) {
+    switch (filters.sortBy) {
+      case 'created_at_asc':
+        orderBy = 'ORDER BY created_at ASC';
+        break;
+      case 'price_asc':
+        orderBy = 'ORDER BY price ASC';
+        break;
+      case 'price_desc':
+        orderBy = 'ORDER BY price DESC';
+        break;
+      case 'title_asc':
+        orderBy = 'ORDER BY title ASC';
+        break;
+      case 'title_desc':
+        orderBy = 'ORDER BY title DESC';
+        break;
+      default:
+        orderBy = 'ORDER BY created_at DESC';
+    }
+  }
+
+  sql += ` ${orderBy}`;
+
+  // Limit
+  const limit = filters.limit || 50;
+  sql += ' LIMIT ?';
+  params.push(limit);
+
+  console.log('Search SQL:', sql);
+  console.log('Search params:', params);
+
+  db.all(sql, params, finishWithRows);
+}
+
 // Basic search (simple LIKE-based fallback). For better results, use full-text or external engine.
 function searchProducts(q, limit = 20, cb) {
   const finishWithRows = (err, rows) => {
@@ -305,6 +406,7 @@ module.exports = {
   createProduct,
   getProductById,
   searchProducts,
+  searchProductsWithFilters,
   // Return products for a given seller
   getProductsBySeller: function(seller_id, cb) {
     db.all('SELECT * FROM products WHERE seller_id = ? ORDER BY created_at DESC', [seller_id], (err, rows) => {

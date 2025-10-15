@@ -309,6 +309,19 @@ app.get('/api/products/:id', (req, res) => {
     });
 });
 
+// Pesquisa com filtros avançados
+app.post('/api/products/search', (req, res) => {
+    const filters = req.body;
+    console.log('Received filters:', filters);
+    
+    products.searchProductsWithFilters(filters, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const base = `${req.protocol}://${req.get('host')}`;
+        (rows || []).forEach(r => { r.images = (r.images || []).map(p => `${base}${p}`); });
+        res.json({ results: rows });
+    });
+});
+
 // Pesquisa simples
 app.get('/api/products', (req, res) => {
     const q = req.query.q || '';
