@@ -106,6 +106,15 @@ const submitSearch = () => {
   box-shadow: none;
 }
 
+.profile-button:not(.profile-avatar) {
+  color: #004451; /* Escolha a cor que quiser */
+  justify-content: center; /* centraliza o texto no botão */
+  align-items: center; /* centraliza o texto no botão */
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600; /* opcional — deixa o texto mais visível */
+}
+
 /* Logo */
 .logo {
   display: flex;
@@ -124,7 +133,6 @@ const submitSearch = () => {
   /* Fundo da barra de pesquisa em si (pode ser diferente do header) */
   background-color: #f5f5f5; 
   border-radius: 20px;
-  /* ... outros estilos ... */
 }
 
 .search-button svg {

@@ -140,7 +140,7 @@ import googleLogo from '../assets/google-logo.png'
   max-width: 400px;
   height: 550px;
   width: 350px;
-  margin: 5rem auto;
+  margin: 1rem auto;
   padding: 1.5rem;
   background-color: #f2f2f2;
   border-radius: 15px;
