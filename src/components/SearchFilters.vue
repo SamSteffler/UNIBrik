@@ -2,7 +2,6 @@
   <div class="sidebar-filters">
     <h3 class="filters-title">Filtros</h3>
 
-    <!-- Faixa de Preço -->
     <div class="filter-section price-section">
       <div class="price-range">
         <div class="slider-container">
@@ -25,11 +24,11 @@
             class="slider slider-max"
           />
           <div class="slider-track"></div>
-          <div 
-            class="slider-range" 
-            :style="{ 
-              left: (filters.minPrice / 5000 * 100) + '%', 
-              width: ((filters.maxPrice - filters.minPrice) / 5000 * 100) + '%' 
+          <div
+            class="slider-range"
+            :style="{
+              left: (filters.minPrice / 5000 * 100) + '%',
+              width: ((filters.maxPrice - filters.minPrice) / 5000 * 100) + '%'
             }"
           ></div>
         </div>
@@ -60,12 +59,11 @@
       </div>
     </div>
 
-    <!-- Categorias -->
     <div class="filter-section">
       <h4 class="section-title">Categorias</h4>
       <div class="checkbox-list">
-        <label 
-          v-for="category in categories" 
+        <label
+          v-for="category in categories"
           :key="category"
           class="checkbox-item"
         >
@@ -81,12 +79,11 @@
       </div>
     </div>
 
-    <!-- Local de Retirada -->
     <div class="filter-section">
       <h4 class="section-title">Local de Retirada</h4>
       <div class="checkbox-list">
-        <label 
-          v-for="location in locations" 
+        <label
+          v-for="location in locations"
           :key="location"
           class="checkbox-item"
         >
@@ -102,12 +99,11 @@
       </div>
     </div>
 
-    <!-- Condição -->
     <div class="filter-section">
       <h4 class="section-title">Condição</h4>
       <div class="checkbox-list">
-        <label 
-          v-for="condition in conditions" 
+        <label
+          v-for="condition in conditions"
           :key="condition"
           class="checkbox-item"
         >
@@ -123,7 +119,6 @@
       </div>
     </div>
 
-    <!-- Ordenação -->
     <div class="filter-section" v-if="false">
       <h4 class="section-title">Ordenar por</h4>
       <select v-model="filters.sortBy" @change="onFilterChange" class="sort-select">
@@ -136,10 +131,9 @@
       </select>
     </div>
 
-    <!-- Botão Limpar Filtros -->
-    <button 
-      v-if="hasActiveFilters" 
-      @click="clearFilters" 
+    <button
+      v-if="hasActiveFilters"
+      @click="clearFilters"
       class="clear-filters-btn"
     >
       Limpar filtros
@@ -164,7 +158,7 @@ const emit = defineEmits(['update:modelValue', 'filtersChanged'])
 // Opções disponíveis
 const categories = [
   'Eletrônicos',
-  'Livros', 
+  'Livros',
   'Materiais de aula',
   'Móveis',
   'Serviços',
@@ -213,7 +207,7 @@ function formatPrice(value) {
 
 function onFilterChange() {
   // Validação: se minPrice > maxPrice, ajustar
-  if (filters.value.minPrice && filters.value.maxPrice && 
+  if (filters.value.minPrice && filters.value.maxPrice &&
       filters.value.minPrice > filters.value.maxPrice) {
     filters.value.maxPrice = filters.value.minPrice
   }
@@ -284,15 +278,17 @@ watch(() => props.modelValue, (newValue) => {
   position: relative;
   height: 40px;
   margin-bottom: 12px;
+  /* padding removido para corrigir alinhamento */
 }
 
 .slider-track {
   position: absolute;
-  width: 100%;
+  width: calc(100% - 28px);
   height: 6px;
   background: #B8B8B8;
   border-radius: 3px;
   top: 17px;
+  left: 14px;
   z-index: 1;
 }
 
@@ -307,7 +303,9 @@ watch(() => props.modelValue, (newValue) => {
 
 .slider {
   position: absolute;
-  width: 100%;
+  /* Largura e posição ajustadas para alinhar com a trilha */
+  width: calc(100% - 28px);
+  left: 14px;
   height: 40px;
   background: transparent;
   outline: none;
@@ -315,27 +313,27 @@ watch(() => props.modelValue, (newValue) => {
   appearance: none;
   pointer-events: none;
   top: 0;
-  left: 0;
 }
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #2E9AA0;
   cursor: pointer;
   pointer-events: all;
   position: relative;
   z-index: 4;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border: 5px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: transform 0.1s ease;
 }
 
 .slider::-webkit-slider-thumb:hover {
   transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
 .slider::-webkit-slider-thumb:active {
@@ -343,16 +341,16 @@ watch(() => props.modelValue, (newValue) => {
 }
 
 .slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #2E9AA0;
   cursor: pointer;
   pointer-events: all;
   position: relative;
   z-index: 4;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border: 5px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: transform 0.1s ease;
 }
 
