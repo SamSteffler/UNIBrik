@@ -19,11 +19,7 @@ const categorias = [
   "Roupas", 
   "Materiais didáticos", 
   "Serviços", 
-  "Aluguel",
-  "Leonardo Brisolla",
-  "Celular",
-  "Tchóvis",
-  "Bandeclay",
+  "Aluguel"
 ]
 </script>
 
