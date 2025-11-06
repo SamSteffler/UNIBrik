@@ -21,6 +21,15 @@ const editProfile = () => {
   router.push('/profile/edit');
 };
 
+const manageUsers = () => {
+  router.push('/admin/users');
+};
+
+const isAdmin = computed(() => {
+  const user = authService.userState.user;
+  return user && (user.role === 'admin' || user.role === 'supervisor');
+});
+
 // Verifica se o usuário tem endereço cadastrado
 const hasAddress = computed(() => {
   const user = authService.userState.user;
@@ -50,8 +59,9 @@ const formatCEP = (cep) => {
     <aside class="profile-menu">
       <h3>Minha Conta</h3>
       <ul>
-        <li @click="myAds">Meus anúncios</li>
-        <li @click="favorites">Favoritos</li>
+        <li @click="myAds">{{ isAdmin ? 'Lista de anúncios' : 'Meus anúncios' }}</li>
+        <li v-if="!isAdmin" @click="favorites">Favoritos</li>
+        <li v-if="isAdmin" @click="manageUsers">Gerenciar Usuários</li>
         <li @click="editProfile">Dados cadastrais</li>
         <li class="logout-button" @click="handleLogout">Sair</li>
       </ul>

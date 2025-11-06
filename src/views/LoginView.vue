@@ -21,6 +21,13 @@ const handleEmailLogin = async () => {
     const data = await res.json();
 
     if (!res.ok) {
+      // Check if user is blocked
+      if (res.status === 403 && data.blocked) {
+        // Store user data temporarily to show blocked screen
+        authService.login(data.user || { email: email.value, approved: 0 });
+        router.push('/blocked');
+        return;
+      }
       // Se a resposta não for 2xx, lança um erro com a mensagem do backend
       throw new Error(data.error || 'Falha no login.');
     }
@@ -56,6 +63,9 @@ const onLoginSuccess = async (response) => {
   if (res.status === 200) { // 2. Se o usuário já existe, faz o login
     authService.login(data.user);
     router.push('/profile');
+  } else if (res.status === 403 && data.blocked) { // User is blocked
+    authService.login(data.user || { email: userData.email, approved: 0, name: userData.name });
+    router.push('/blocked');
   } else if (res.status === 404) { // 3. Se não existe, redireciona para o cadastro
     // Passamos os dados do Google como query params para a página de registro
     router.push({ 

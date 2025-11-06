@@ -3,6 +3,7 @@
     <div class="img-container">
       <img v-if="imageSrc" :src="imageSrc" :alt="titleVal" />
       <span v-else class="placeholder">📦</span>
+      <span v-if="statusVal === 'pending'" class="pending-badge">Aprovação pendente</span>
     </div>
 
     <div class="body">
@@ -61,6 +62,7 @@ const locationVal = computed(() => props.item?.location ?? props.local ?? props.
 const imagesVal = computed(() => props.item?.images ?? props.images ?? (props.img ? [props.img] : []))
 const conditionVal = computed(() => props.item?.condition ?? props.condition)
 const categoryVal = computed(() => props.item?.category ?? props.category)
+const statusVal = computed(() => props.item?.status)
 
 const imageSrc = computed(() => {
   if (!imagesVal.value || !imagesVal.value.length) return null
@@ -123,7 +125,8 @@ function onClick() {
   display:flex; 
   align-items:center; 
   justify-content:center; 
-  flex-shrink:0 
+  flex-shrink:0;
+  position:relative;
 }
 
 .img-container img { 
@@ -134,6 +137,19 @@ function onClick() {
 
 .placeholder { 
   font-size:1.6rem 
+}
+
+.pending-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background: rgba(243, 156, 18, 0.95);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  z-index: 10;
 }
 
 .body { 

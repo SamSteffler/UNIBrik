@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits, computed } from 'vue';
 import authService from '../services/authService';
 
 // Prop para controlar a visibilidade do menu a partir do componente pai (Header)
@@ -21,6 +21,11 @@ const handleLogout = () => {
   handleClose(); // Fecha o menu
   authService.logout(); // Executa o logout
 };
+
+const isAdmin = computed(() => {
+  const user = authService.userState.user;
+  return user && (user.role === 'admin' || user.role === 'supervisor');
+});
 </script>
 
 <template>
@@ -41,8 +46,10 @@ const handleLogout = () => {
             <hr />
 
             <template v-if="authService.userState.isLoggedIn">
-              <li><RouterLink to="/my-ads" @click="handleClose">Meus Anúncios</RouterLink></li>
-              <li><RouterLink to="/favorites" @click="handleClose">Favoritos</RouterLink></li>
+              <li><RouterLink to="/my-ads" @click="handleClose">{{ isAdmin ? 'Lista de anúncios' : 'Meus Anúncios' }}</RouterLink></li>
+              <li v-if="!isAdmin"><RouterLink to="/favorites" @click="handleClose">Favoritos</RouterLink></li>
+              <li><RouterLink to="/messages" @click="handleClose">Mensagens</RouterLink></li>
+              <li v-if="isAdmin"><RouterLink to="/admin/users" @click="handleClose">Gerenciar Usuários</RouterLink></li>
               <li><RouterLink to="/profile" @click="handleClose">Dados Cadastrais</RouterLink></li>
               <hr />
               <li><a href="#" @click.prevent="handleLogout">Sair</a></li>

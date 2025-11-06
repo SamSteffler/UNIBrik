@@ -12,6 +12,8 @@ db.run(`CREATE TABLE IF NOT EXISTS products (
   price REAL DEFAULT 0,
   seller_id INTEGER,
   location TEXT DEFAULT 'UFSM' CHECK(location IN ('UFSM', 'Em casa', 'A combinar')),
+  approved INTEGER DEFAULT 1,
+  status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'allowed', 'blocked')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`, (err) => {
     if (err) {
@@ -117,9 +119,12 @@ db.serialize(() => {
 
 // Insert a new product
 function createProduct(product, cb) {
-  const { title, condition, category, description, price, seller_id, location } = product;
-  const sql = `INSERT INTO products (title, condition, category, description, price, seller_id, location, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-  const params = [title, condition, category, description, price || 0, seller_id || null, location || 'UFSM', new Date().toISOString()];
+  const { title, condition, category, description, price, seller_id, location, approved, status } = product;
+  // default status to 'pending' (require admin approval) unless explicitly provided
+  const statusValue = status || 'pending';
+  const approvedFlag = approved === undefined ? 1 : (approved ? 1 : 0);
+  const sql = `INSERT INTO products (title, condition, category, description, price, seller_id, location, approved, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const params = [title, condition, category, description, price || 0, seller_id || null, location || 'UFSM', approvedFlag, statusValue, new Date().toISOString()];
   db.run(sql, params, function (err) {
     if (err) return cb(err);
     db.get('SELECT * FROM products WHERE id = ?', [this.lastID], (err, row) => cb(err, row));
@@ -345,7 +350,8 @@ function searchProductsWithFilters(filters, cb) {
     }
   }
 
-  sql += ` ${orderBy}`;
+  // Only include allowed products in public filtered searches
+  sql += ` AND status = 'allowed' ${orderBy}`;
 
   // Limit
   const limit = filters.limit || 50;
@@ -376,18 +382,18 @@ function searchProducts(q, limit = 20, cb) {
   };
 
   if (!q || q.trim() === '') {
-    return db.all('SELECT * FROM products ORDER BY created_at DESC LIMIT ?', [limit], finishWithRows);
+    return db.all("SELECT * FROM products WHERE status = 'allowed' ORDER BY created_at DESC LIMIT ?", [limit], finishWithRows);
   }
 
   // Build a prefix-style FTS query (controller -> controller*) to increase recall
   const tokens = q.split(/\s+/).map(t => t.replace(/[^\w]/g, '')).filter(Boolean).map(t => t + '*').join(' ');
 
-  const ftsSql = `SELECT p.* FROM product_fts f JOIN products p ON p.id = f.rowid WHERE f MATCH ? LIMIT ?`;
+  const ftsSql = `SELECT p.* FROM product_fts f JOIN products p ON p.id = f.rowid WHERE f MATCH ? AND p.status = 'allowed' LIMIT ?`;
   db.all(ftsSql, [tokens, limit], (err, rows) => {
     if (err) {
       // Fallback to LIKE search if FTS isn't available or errors
       const pattern = `%${q}%`;
-      const sql = `SELECT * FROM products WHERE title LIKE ? OR condition LIKE ? OR description LIKE ? ORDER BY created_at DESC LIMIT ?`;
+      const sql = `SELECT * FROM products WHERE (title LIKE ? OR condition LIKE ? OR description LIKE ?) AND status = 'allowed' ORDER BY created_at DESC LIMIT ?`;
       const params = [pattern, pattern, pattern, limit];
       return db.all(sql, params, finishWithRows);
     }
@@ -396,7 +402,7 @@ function searchProducts(q, limit = 20, cb) {
 
     // Fallback: simple LIKE-based search
     const pattern = `%${q}%`;
-    const sql = `SELECT * FROM products WHERE title LIKE ? OR condition LIKE ? OR description LIKE ? ORDER BY created_at DESC LIMIT ?`;
+    const sql = `SELECT * FROM products WHERE (title LIKE ? OR condition LIKE ? OR description LIKE ?) AND status = 'allowed' ORDER BY created_at DESC LIMIT ?`;
     const params = [pattern, pattern, pattern, limit];
     db.all(sql, params, finishWithRows);
   });
@@ -427,7 +433,7 @@ module.exports = {
 
 // Return free products (price == 0)
 module.exports.getFreeProducts = function(limit = 12, cb) {
-  db.all('SELECT * FROM products WHERE price = 0 ORDER BY created_at DESC LIMIT ?', [limit], (err, rows) => {
+  db.all("SELECT * FROM products WHERE price = 0 AND status = 'allowed' ORDER BY created_at DESC LIMIT ?", [limit], (err, rows) => {
     if (err) return cb(err);
     if (!rows || rows.length === 0) return cb(null, rows);
     let remaining = rows.length; let firstErr = null;
@@ -445,7 +451,8 @@ module.exports.getFreeProducts = function(limit = 12, cb) {
 // Update a product by id
 module.exports.updateProduct = function(id, data, cb) {
   const { title, condition, category, description, price, location } = data;
-  const sql = `UPDATE products SET title = ?, condition = ?, category = ?, description = ?, price = ?, location = ? WHERE id = ?`;
+  // When a product is edited, set status back to 'pending' for re-approval
+  const sql = `UPDATE products SET title = ?, condition = ?, category = ?, description = ?, price = ?, location = ?, status = 'pending' WHERE id = ?`;
   const params = [title, condition, category, description, price, location, id];
   db.run(sql, params, function(err) {
     if (err) return cb(err);

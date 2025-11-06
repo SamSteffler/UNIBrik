@@ -65,8 +65,13 @@ function onFiltersChanged(newFilters) {
 
 // Função para favoritar (placeholder)
 function toggleFavorite(productId) {
-  console.log('Toggle favorite for product:', productId);
-  // Implementar lógica de favoritos aqui
+  // prevent supervisors from favoriting
+  const stored = localStorage.getItem('user');
+  const user = stored ? JSON.parse(stored) : null;
+  if (!user) return alert('Você precisa estar logado para favoritar produtos.');
+  if (user.role === 'supervisor') return alert('Contas supervisor não podem favoritar anúncios.');
+  // Favorite/unfavorite behavior is implemented on product page; keep simple here or implement optimistic UI
+  alert('Favoritar/desfavoritar a partir da página do produto por enquanto.');
 }
 
 onMounted(() => {

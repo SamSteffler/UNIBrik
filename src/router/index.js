@@ -10,7 +10,10 @@ import ProductView from '../views/ProductView.vue'
 import EditProductView from '../views/EditProductView.vue'
 import MyFavoritesView from '../views/MyFavoritesView.vue'
 import EditProfileView from '../views/EditProfileView.vue'
+import MessagesView from '../views/MessagesView.vue'
 import TestFiltersView from '../views/TestFiltersView.vue'
+import AdminUsersView from '../views/AdminUsersView.vue'
+import BlockedUserView from '../views/BlockedUserView.vue'
 import { userState } from '../services/authService';
 
 const router = createRouter({
@@ -86,11 +89,39 @@ const router = createRouter({
       component: MyFavoritesView,
       meta: { requiresAuth: true }
     }
+    ,
+    {
+      path: '/messages',
+      name: 'messages',
+      component: MessagesView,
+      meta: { requiresAuth: true }
+    }
+    ,
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: AdminUsersView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/blocked',
+      name: 'blocked',
+      component: BlockedUserView,
+      meta: { hideHeader: true }
+    }
   ]
 })
 
 // 3. Modifique a guarda de rota
 router.beforeEach((to, from, next) => {
+  // Check if user is blocked (approved === 0)
+  if (userState.isLoggedIn && userState.user && userState.user.approved === 0) {
+    // Allow access only to blocked page and logout
+    if (to.name !== 'blocked') {
+      return next({ name: 'blocked' });
+    }
+  }
+  
   if (to.meta.requiresAuth && !userState.isLoggedIn) {
     // Se a rota exige login e o usuário não está logado,
     // redireciona para a página de login.
