@@ -61,7 +61,7 @@
               <select id="location" v-model="form.location">
                 <option value="UFSM">UFSM</option>
                 <option value="Em casa">Em casa</option>
-                <option value="A Combinar">A combinar</option>
+                <option value="A combinar">A combinar</option>
               </select>
             </div>
           </div>
