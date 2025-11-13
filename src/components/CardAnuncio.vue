@@ -8,11 +8,8 @@
 
     <div class="body">
       <h3 class="title">{{ titleVal }}</h3>
-
       <p class="price">{{ priceLabel }}</p>
-
       <p class="desc">{{ shortDesc }}</p>
-
       <p class="meta">
         <span class="cond">{{ conditionVal || categoryVal || '' }}</span>
         <span class="sep" v-if="locationVal"> | {{ locationVal }}</span>
@@ -26,7 +23,6 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
-  // Accept either an `item` object or individual props for backwards compatibility
   item: Object,
   id: [Number, String],
   title: String,
@@ -41,17 +37,13 @@ const props = defineProps({
   img: String,
   condition: String,
   category: String,
-  // layout variant: 'compact' (default) or 'list'
   variant: { type: String, default: 'compact' },
-  // whether the card should auto-navigate to product page on click. If false, emits 'card-click'.
   navigate: { type: Boolean, default: true },
-  // description styling and truncation controls
   descMaxChars: { type: Number, default: 100 },
   descSize: { type: String, default: '0.9rem' }
 })
 
 const emit = defineEmits(['card-click'])
-
 const router = useRouter()
 
 const idVal = computed(() => props.item?.id ?? props.id)
@@ -66,15 +58,10 @@ const statusVal = computed(() => props.item?.status)
 
 const imageSrc = computed(() => {
   if (!imagesVal.value || !imagesVal.value.length) return null
-  
   let imageUrl = imagesVal.value[0]
-  
-  // Transform backend URLs to work with Vite dev server
   if (imageUrl && imageUrl.startsWith('http://localhost:3000/')) {
-    // Replace backend URL with Vite dev server base path
     imageUrl = imageUrl.replace('http://localhost:3000/', '/UNIBrik/')
   }
-  
   return imageUrl
 })
 
@@ -93,192 +80,208 @@ const priceLabel = computed(() => {
 
 const variantClass = computed(() => (props.variant === 'list' ? 'variant-list' : 'variant-compact'))
 
-const descStyle = computed(() => ({ fontSize: props.descSize }))
-
 function onClick() {
   if (props.navigate && idVal.value) {
     router.push({ name: 'product', params: { id: idVal.value } })
     return
   }
-  // emit event for parent to handle (e.g., edit)
   emit('card-click', idVal.value)
 }
-
 </script>
+
 <style scoped>
 .card {
-   background: #fff; 
-   border-radius: 12px; 
-   box-shadow: 0 4px 10px rgba(0,0,0,0.04); 
-   display:flex; 
-   gap:12px; 
-   padding:12px; 
-   cursor:pointer 
+  position: relative;
+  overflow: hidden; /* Garante que nada “vaze” das bordas */
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* sombra mais natural */
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s ease;
 }
 
-.img-container { 
-  width:100px; 
-  height:80px; 
-  border-radius:10px; 
-  overflow:hidden; 
-  background:#f1f2f6; 
-  display:flex; 
-  align-items:center; 
-  justify-content:center; 
-  flex-shrink:0;
-  position:relative;
+.card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
-.img-container img { 
-  width:100%; 
-  height:100%; 
-  object-fit:cover 
+.img-container {
+  width: 100px;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden; /* importante para respeitar bordas */
+  background: #f1f2f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
 }
 
-.placeholder { 
-  font-size:1.6rem 
+.img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+.placeholder {
+  font-size: 1.6rem;
 }
 
 .pending-badge {
   position: absolute;
   bottom: 6px;
-  left: 6px;
+  left: 50%px;
   background: rgba(243, 156, 18, 0.95);
   color: #fff;
   padding: 4px 8px;
+  
   border-radius: 6px;
   font-size: 0.7rem;
   font-weight: bold;
   z-index: 10;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
-.body { 
-  flex:1; 
-  display:flex; 
-  flex-direction:column; 
-  gap:6px 
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* Compact variant (Home) */
-.variant-compact { 
+.variant-compact {
   position: relative;
-  flex-direction: column; 
-  width: 144px; 
-  padding:8px; 
-  border-radius:16px 
+  flex-direction: column;
+  width: 144px;
+  padding: 8px;
+  border-radius: 16px;
+  overflow: hidden; /* evita sombra estourar */
+  box-sizing: border-box;
 }
 
-.variant-compact .img-container { 
-  width:100%; 
-  height:96px; 
-  border-radius:13px 
+.variant-compact .img-container {
+  width: 100%;
+  height: 96px;
+  border-radius: 13px;
 }
 
-.variant-compact .body { 
-  gap:3px 
+.variant-compact .body {
+  gap: 3px;
 }
 
-.variant-compact .title { 
-  font-size:0.8rem;
-  margin:0; 
+.variant-compact .title {
+  font-size: 0.8rem;
+  margin: 0;
   margin-top: -7px;
   margin-bottom: -2px;
-  line-height:1.1em;
+  line-height: 1.1em;
   color: #004451;
-  font-weight: bold; 
+  font-weight: bold;
 }
 
-.variant-compact .meta { 
+.variant-compact .meta {
   position: absolute;
-  font-size:0.70rem;
-  margin:0; 
-  color: #004451; 
+  font-size: 0.7rem;
+  margin: 0;
+  color: #004451;
   font-weight: bold;
   bottom: 10px;
 }
 
 .variant-compact .desc {
-  margin:0;
-  font-size: 9px;          /* já reduzido para 80% */
-  display: -webkit-box;         /* necessário para line-clamp */
-  -webkit-line-clamp: 2;        /* limita a 2 linhas */
+  margin: 0;
+  font-size: 9px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;      /* adiciona "..." se cortar */
-  max-height: 2.4em;            /* opcional: controla altura total */
+  text-overflow: ellipsis;
+  max-height: 2.4em;
   margin-bottom: 25px;
   margin-top: 5px;
   margin-left: 5px;
   color: #00445186;
 }
 
-.variant-compact .price { 
-  margin:0; 
+.variant-compact .price {
+  margin: 0;
   margin-left: 1px;
-  color: #0097b2; 
-  font-weight:bold;
-  font-size:0.72rem;
+  color: #0097b2;
+  font-weight: bold;
+  font-size: 0.72rem;
 }
-
 
 /* List variant (Search/MyAds) */
-.variant-list { 
+.variant-list {
   position: relative;
-  flex-direction:row; 
-  width:100%; 
-  padding:12px 
+  flex-direction: row;
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-.variant-list .img-container { 
-  width:35%; 
-  height:100%; 
-  border-radius:13px 
+.variant-list .img-container {
+  width: 35%;
+  height: 100%;
+  border-radius: 13px;
 }
 
-.variant-list .body { 
-  gap:3px 
+.variant-list .body {
+  gap: 3px;
 }
 
-.variant-list .title { 
-  font-size:18px;
-  margin:0; 
+.variant-list .title {
+  font-size: 18px;
+  margin: 0;
   margin-bottom: -2px;
-  line-height:1.1em;
+  line-height: 1.1em;
   color: #004451;
-  font-weight: bold; 
+  font-weight: bold;
 }
 
-.variant-list .meta { 
+.variant-list .meta {
   position: absolute;
   font-size: 13px;
-  margin:0; 
-  color: #004451; 
+  margin: 0;
+  color: #004451;
   font-weight: bold;
   bottom: 10px;
 }
 
 .variant-list .desc {
-  margin:0;
-  font-size: 11px;          /* já reduzido para 80% */
-  display: -webkit-box;         /* necessário para line-clamp */
-  -webkit-line-clamp: 2;        /* limita a 2 linhas */
+  margin: 0;
+  font-size: 11px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;      /* adiciona "..." se cortar */
-  max-height: 2.4em;            /* opcional: controla altura total */
+  text-overflow: ellipsis;
+  max-height: 2.4em;
   margin-bottom: 25px;
   margin-top: 5px;
   margin-left: 5px;
   color: #00445186;
 }
 
-.variant-list .price { 
-  margin:0; 
+.variant-list .price {
+  margin: 0;
   margin-left: 1px;
-  color: #0097b2; 
-  font-weight:bold;
-  font-size:16px;
+  color: #0097b2;
+  font-weight: bold;
+  font-size: 16px;
 }
-
-
 </style>

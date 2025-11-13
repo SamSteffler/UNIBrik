@@ -61,7 +61,6 @@ const submitSearch = () => {
       </RouterLink>
       <RouterLink v-else to="/profile" class="profile-button profile-avatar">
         <img :src="profileImageUrl" alt="Foto de perfil" class="avatar-img"><span class="profile-label">Meu Perfil</span>
-        <img :src="profileImageUrl" alt="Foto de perfil" class="avatar-img"><span class="profile-label">Meu Perfil</span>
       </RouterLink>
 
 
@@ -249,17 +248,9 @@ const submitSearch = () => {
   color: #004451;
 }
 
-.menu-toggle {
-  color: white; /* Define a cor do ícone do menu para branco */
-  z-index: 1;
-}
-
-.menu-toggle:hover {
-  outline: none;
-  box-shadow: none;
-  background-color: #0097b2;
-  transform: scale(1.20);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.profile-button:not(.profile-avatar) {
+  color: #004451 !important; /* deixa o texto preto */
+  background-color: #f5f5f5; /* mantém o fundo cinza claro */
 }
 
 .menu-toggle {
@@ -274,5 +265,19 @@ const submitSearch = () => {
   transform: scale(1.20);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.menu-toggle {
+  color: white; /* Define a cor do ícone do menu para branco */
+  z-index: 1;
+}
+
+.menu-toggle:hover {
+  outline: none;
+  box-shadow: none;
+  background-color: #0097b2;
+  transform: scale(1.20);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 
 </style>

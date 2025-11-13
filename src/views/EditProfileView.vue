@@ -309,7 +309,7 @@ h2 {
 
 fieldset {
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 15px;
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -349,7 +349,7 @@ input {
   width: 96%;
   padding: 0.8rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 15px;
   font-size: 1rem;
 }
 
