@@ -1,5 +1,5 @@
 <template>
-  <div class="create-product">
+  <div class="create-product-container">
     <div v-if="isAdminOrSupervisor" style="text-align:center;padding:3rem">
       <h2 style="color:#d63031">Acesso negado</h2>
       <p>Contas de administrador/supervisor não podem criar anúncios.</p>
@@ -7,60 +7,68 @@
     </div>
 
     <div v-else>
-      <h2 class="h2">Registrar produto</h2>
+      <h2>Registrar Produto</h2>
 
       <form @submit.prevent="handleSubmit">
-        <div class="form-group">
-          <label for="title">Título</label>
-          <input id="title" v-model="form.title" required />
-        </div>
-
-        <div class="form-group">
-          <label for="condition">Condição</label>
-          <select id="condition" v-model="form.condition">
-            <option value="Novo">Novo</option>
-            <option value="Usado">Usado - como novo</option>
-            <option value="Usado - bom">Usado - bom</option>
-            <option value="Usado - aceitável">Usado - aceitável</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="category">Categoria</label>
-          <select id="category" v-model="form.category">
-            <option value="Eletrônicos">Eletrônicos</option>
-            <option value="Móveis">Móveis</option>
-            <option value="Livros">Livros</option>
-            <option value="Roupas">Roupas</option>
-            <option value="Serviços">Serviços</option>
-            <option value="Materiais">Materiais</option>
-            <option value="Outros">Outros</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="description">Descrição</label>
-          <textarea id="description" v-model="form.description"></textarea>
-        </div>
-
-        <div class="form-grid">
+        <fieldset>
+          <legend>Informações Básicas</legend>
           <div class="form-group">
-            <label for="price">Preço (R$)</label>
-            <input id="price" type="number" v-model.number="form.price" min="0" step="0.01" />
+            <label for="title">Título</label>
+            <input id="title" v-model="form.title" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="condition">Condição</label>
+              <select id="condition" v-model="form.condition">
+                <option value="Novo">Novo</option>
+                <option value="Usado">Usado - como novo</option>
+                <option value="Usado - bom">Usado - bom</option>
+                <option value="Usado - aceitável">Usado - aceitável</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="category">Categoria</label>
+              <select id="category" v-model="form.category">
+                <option value="Eletrônicos">Eletrônicos</option>
+                <option value="Móveis">Móveis</option>
+                <option value="Livros">Livros</option>
+                <option value="Roupas">Roupas</option>
+                <option value="Serviços">Serviços</option>
+                <option value="Materiais">Materiais</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="location">Local de retirada</label>
-            <select id="location" v-model="form.location">
-              <option value="UFSM">UFSM</option>
-              <option value="Em casa">Em casa</option>
-              <option value="A Combinar">A combinar</option>
-            </select>
+            <label for="description">Descrição</label>
+            <textarea id="description" v-model="form.description"></textarea>
           </div>
-        </div>
+        </fieldset>
 
-        <div class="form-group images-section">
-          <h3>Anexar imagens (opcional)</h3>
+        <fieldset>
+          <legend>Preço e Localização</legend>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="price">Preço (R$)</label>
+              <input id="price" type="number" v-model.number="form.price" min="0" step="0.01" />
+            </div>
+
+            <div class="form-group">
+              <label for="location">Local de Retirada</label>
+              <select id="location" v-model="form.location">
+                <option value="UFSM">UFSM</option>
+                <option value="Em casa">Em casa</option>
+                <option value="A combinar">A combinar</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Anexar Imagens (opcional)</legend>
           <input 
             type="file" 
             ref="fileInput" 
@@ -69,22 +77,28 @@
             @change="handleFileSelect"
             class="file-input"
           />
+          
           <div class="thumbnails" v-if="selectedFiles.length > 0">
             <div v-for="(file, index) in selectedFiles" :key="index" class="thumb">
               <img :src="file.preview" :alt="file.name" />
               <button type="button" @click="removeImage(index)" class="remove-btn">✕</button>
             </div>
           </div>
+
           <p class="hint" v-if="selectedFiles.length === 0">
             Clique para selecionar imagens
           </p>
-        </div>
+        </fieldset>
 
-        <button type="submit" class="submit-button">Criar Anúncio</button>
+        <div class="button-group">
+          <button type="button" class="cancel-button" @click="$router.push('/')">Cancelar</button>
+          <button type="submit" class="submit-button">Criar Anúncio</button>
+        </div>
       </form>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed } from 'vue';
@@ -190,96 +204,72 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.create-product { 
+.create-product-container {
   max-width: 800px;
-  margin: 3rem auto;
+  margin: 0 auto;
   padding: 2rem;
   background-color: #fff;
   border-radius: 24px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.h2 {
+h2 {
+  margin-bottom: 2rem;
+  color: #004451;
+}
+
+fieldset {
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
   margin-bottom: 1.5rem;
-  margin-left: 1rem;
-  font-size: 1.5rem;
-  color: #004451;
 }
 
-.form-group { 
-  margin-bottom: 1rem;
-  padding-left: 2rem;
-  color: #004451;
-}
-
-label { 
-  display:block; 
-  margin-bottom:0.25rem 
-}
-
-input, textarea, select { 
-  width: 95%;              /* ocupa toda a largura do container */
-  padding: 0.6rem; 
-  border: 1px solid #ddd; 
-  border-radius: 6px; 
-  box-sizing: border-box;   /* garante que o padding não ultrapasse o 100% */
-  margin-bottom: 0.8rem;    /* dá um espaçamento entre os campos */
-  font-size: 1rem;          /* mantém tamanho de texto consistente */
-}
-
-.form-grid { 
-  display:flex; 
-  gap:1rem 
-}
-
-.form-grid .form-group { 
-  flex:1 
-}
-
-.submit-button { 
-  margin-top:1rem; 
-  padding:0.75rem 1rem; 
-  background:#0984e3; 
-  color:#fff; 
-  border:none; 
-  border-radius: 30px;
-  padding-left: 3rem;
-  padding-right: 3rem;
-  font-family: 'Plus Jakarta Sans', Times, serif !important;
+legend {
+  padding: 0 0.5rem;
   font-weight: bold;
-  background-color: #0097b2;
+  color: #0097b2;
 }
 
-.submit-button:hover {
-  background-color: rgba(0, 113, 133, 1);
+.form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.images-section {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-radius: 12px;
+.form-row .form-group {
+  flex: 1;
 }
 
-.images-section h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
   color: #004451;
 }
 
-.file-input {
+input, select, textarea {
   width: 100%;
   padding: 0.8rem;
-  border: 2px dashed #0097b2;
-  border-radius: 8px;
-  cursor: pointer;
-  background: white;
-  transition: all 0.3s;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  font-size: 1rem;
+  box-sizing: border-box;
 }
 
-.file-input:hover {
-  border-color: #004451;
-  background: #f0f8ff;
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #0097B2;
+  box-shadow: 0 0 0 3px rgba(0, 151, 178, 0.1);
 }
 
 .thumbnails {
@@ -328,11 +318,64 @@ input, textarea, select {
   transform: scale(1.1);
 }
 
+.file-input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px dashed #0097b2;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  transition: all 0.3s;
+  margin-top: 1rem;
+}
+
+.file-input:hover {
+  border-color: #004451;
+  background: #f0f8ff;
+}
+
 .hint {
   margin-top: 0.5rem;
-  color: #636e72;
+  color: #00445166;
   font-size: 0.9rem;
   font-style: italic;
 }
 
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.cancel-button,
+.submit-button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  font-family: 'Plus Jakarta Sans', Times, serif !important;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  background-color: #e7e7e7ff;
+  color: #4a4a4aff;
+}
+
+.cancel-button:hover {
+  background-color: #c5c5c5ff;
+}
+
+.submit-button {
+  background-color: #0097b2;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: rgba(0, 113, 133, 1);
+}
 </style>

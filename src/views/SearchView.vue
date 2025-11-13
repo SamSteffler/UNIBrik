@@ -133,8 +133,13 @@ onMounted(() => {
           </div>
 
           <!-- Heart icon for favorites -->
-          <button class="favorite-btn" @click.stop="toggleFavorite(item.id)">
-            <span class="heart">♡</span>
+          <button 
+            class="favorite-btn"
+            :class="{ active: item.favorited }"
+            @click.stop="toggleFavorite(item.id)"
+          >
+            <span class="star" v-if="item.favorited">★</span>
+            <span class="star" v-else>☆</span>
           </button>
         </div>
       </div>
@@ -182,8 +187,8 @@ onMounted(() => {
 }
 
 .product-card {
-  background: white;
-  border-radius: 8px;
+  background: #F2F2F2;
+  border-radius: 15px;
   padding: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
@@ -200,9 +205,9 @@ onMounted(() => {
   width: 100%;
   height: 160px;
   margin-bottom: 12px;
-  border-radius: 6px;
+  border-radius: 15px;
   overflow: hidden;
-  background: #f5f5f5;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -260,35 +265,30 @@ onMounted(() => {
 }
 
 .favorite-btn {
+  background: none;
+  border: none;
   position: absolute;
   top: 12px;
-  right: 12px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  right: 20px;
+  font-size: 1.8rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #ccc;
+  transition: color 0.2s, transform 0.2s ease;
+}
+
+.favorite-btn.active {
+  color: gold;
 }
 
 .favorite-btn:hover {
-  background: #f8f9fa;
-  border-color: #2c9aa0;
+  transform: scale(1.2);
+  color: gold;
 }
 
-.heart {
-  font-size: 1.2rem;
-  color: #666;
-  transition: color 0.2s ease;
-}
-
-.favorite-btn:hover .heart {
-  color: #2c9aa0;
+.star {
+  font-size: inherit;
+  color: inherit;
+  pointer-events: none;
 }
 
 .loading-spinner {

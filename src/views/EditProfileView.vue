@@ -295,7 +295,7 @@ const handleCancel = () => {
 <style scoped>
 .edit-profile-container {
   max-width: 800px;
-  margin: 3rem auto;
+  margin: 0rem auto;
   padding: 2rem;
   background-color: #fff;
   border-radius: 24px;
@@ -309,7 +309,7 @@ h2 {
 
 fieldset {
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 15px;
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -322,6 +322,7 @@ legend {
 
 .form-row {
   display: flex;
+  width: 745px;
   gap: 1rem;
 }
 
@@ -345,10 +346,10 @@ label {
 }
 
 input {
-  width: 90%;
-  padding: 0.75rem;
+  width: 96%;
+  padding: 0.8rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 15px;
   font-size: 1rem;
 }
 

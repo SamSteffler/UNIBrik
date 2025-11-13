@@ -238,7 +238,7 @@ watch(() => props.modelValue, (newValue) => {
 
 <style scoped>
 .sidebar-filters {
-  background: #E8E8E8;
+  background: #F2F2F2;
   border-radius: 20px;
   padding: 24px 20px;
   width: 280px;

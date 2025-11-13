@@ -9,16 +9,19 @@
           <label for="name">Nome Completo</label>
           <input type="text" id="name" v-model="form.name" required />
         </div>
+
         <div class="form-group">
           <label for="email">E-mail</label>
           <input type="email" id="email" v-model="form.email" required :disabled="isGoogleRegister" />
         </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="birth_date">Data de Nascimento *</label>
             <input type="date" id="birth_date" v-model="form.birth_date" :max="maxDate" required />
             <small class="error-message" v-if="ageError">{{ ageError }}</small>
           </div>
+
           <div class="form-group">
             <label for="phone">Celular (com DDD)</label>
             <input 
@@ -32,6 +35,7 @@
             <small class="helper-text">Apenas números, máximo 11 dígitos</small>
           </div>
         </div>
+
         <div class="form-group">
           <label for="password">Senha</label>
           <input type="password" id="password" v-model="form.password" :required="!isGoogleRegister" />
@@ -41,14 +45,17 @@
       
       <fieldset>
         <legend>Endereço</legend>
+
         <div class="form-group">
           <label for="cep">CEP</label>
           <input type="text" id="cep" v-model="form.address_cep" @blur="fetchAddressByCep" placeholder="Apenas números" />
         </div>
+
         <div class="form-group">
           <label for="street">Rua / Logradouro</label>
           <input type="text" id="street" v-model="form.address_street" />
         </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="number">Número</label>
@@ -59,10 +66,12 @@
             <input type="text" id="complement" v-model="form.address_complement" placeholder="Apto, bloco, etc." />
           </div>
         </div>
+
         <div class="form-group">
           <label for="district">Bairro</label>
           <input type="text" id="district" v-model="form.address_district" />
         </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="city">Cidade</label>
@@ -75,10 +84,13 @@
         </div>
       </fieldset>
 
-      <button type="submit" class="submit-button">Finalizar Cadastro</button>
+      <div class="button-group">
+        <button type="submit" class="submit-button">Finalizar Cadastro</button>
+      </div>
     </form>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue';
@@ -246,56 +258,89 @@ const handleRegister = async () => {
 <style scoped>
 .register-container {
   max-width: 800px;
-  margin: 3rem auto;
+  margin: 0 auto;
   padding: 2rem;
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+h2 {
+  margin-bottom: 2rem;
+  color: #004451;
+  text-align: center;
+}
+
 fieldset {
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
   margin-bottom: 1.5rem;
 }
+
 legend {
   padding: 0 0.5rem;
   font-weight: bold;
-  color: #004451;
+  color: #0097b2;
 }
+
 .form-row {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
 }
+
 .form-row .form-group {
   flex: 1;
 }
+
 .uf-group {
-  flex: 0 0 60px; /* Faz o campo UF ficar menor */
+  flex: 0 0 80px;
 }
+
 .form-group {
   margin-bottom: 1.5rem;
 }
+
 label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
+  color: #004451;
 }
-input {
-  width: 90%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  display: block;
 }
-input:disabled {
-  background-color: #f2f2f2;
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #0097B2;
+  box-shadow: 0 0 0 3px rgba(0, 151, 178, 0.1);
 }
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
 .helper-text {
   display: block;
   margin-top: 0.25rem;
   color: #666;
   font-size: 0.875rem;
 }
+
 .error-message {
   display: block;
   margin-top: 0.25rem;
@@ -303,17 +348,28 @@ input:disabled {
   font-size: 0.875rem;
   font-weight: 500;
 }
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
 .submit-button {
   width: 100%;
   padding: 0.75rem;
-  background-color: #0097B2;
+  background-color: #0097b2;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 30px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: bold;
+  font-family: 'Plus Jakarta Sans', Times, serif !important;
+  transition: all 0.3s ease;
 }
+
 .submit-button:hover {
-  background-color: #007a8f;
+  background-color: rgba(0, 113, 133, 1);
 }
 </style>

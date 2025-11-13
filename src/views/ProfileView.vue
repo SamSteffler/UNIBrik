@@ -36,11 +36,11 @@ const hasAddress = computed(() => {
   return user.address_street || user.address_city || user.address_cep;
 });
 
-// Formata a data de nascimento
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
-  return date.toLocaleDateString('pt-BR');
+  date.setDate(date.getDate());
+  return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 };
 
 // Formata o CEP
@@ -51,6 +51,25 @@ const formatCEP = (cep) => {
     return `${cleaned.slice(0, 5)}-${cleaned.slice(5)}`;
   }
   return cep;
+};
+
+// Formata o número de celular
+const formatPhone = (phone) => {
+  if (!phone) return '';
+  const cleaned = phone.replace(/\D/g, ''); // remove tudo que não for número
+
+  // Formato com DDD e 9 dígitos (ex: 51987654321 → (51) 98765-4321)
+  if (cleaned.length === 11) {
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+  }
+
+  // Formato com DDD e 8 dígitos (telefone fixo, ex: 5134567890 → (51) 3456-7890)
+  if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+  }
+
+  // Caso não bata o padrão, retorna como veio
+  return phone;
 };
 </script>
 
@@ -90,7 +109,7 @@ const formatCEP = (cep) => {
         <div class="info-grid">
           <div class="info-item" v-if="authService.userState.user.phone">
             <span class="info-label">📱 Telefone:</span>
-            <span class="info-value">{{ authService.userState.user.phone }}</span>
+            <span class="info-value">{{ formatPhone(authService.userState.user.phone) }}</span>
           </div>
           <div class="info-item" v-if="authService.userState.user.birth_date">
             <span class="info-label">🎂 Data de Nascimento:</span>
@@ -145,7 +164,7 @@ const formatCEP = (cep) => {
 
 .profile-menu {
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 24px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   min-width: 220px;
@@ -189,7 +208,7 @@ const formatCEP = (cep) => {
 .profile-content {
   flex: 1;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 24px;
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }

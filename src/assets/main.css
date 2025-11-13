@@ -35,7 +35,7 @@ main {
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #5a2d82; /* Cor inspirada no PDF */
+  color: #0097b2; /* Cor inspirada no PDF */
   cursor: pointer;
 }
 
@@ -54,7 +54,6 @@ main {
 
 /* Efeito de foco: quando clicar no input, a borda do grupo muda de cor */
 .search-bar:focus-within {
-  border-color: #5a2d82; /* Cor roxa do seu logo */
   box-shadow: 0 0 0 2px rgba(90, 45, 130, 0.2);
 }
 
@@ -109,10 +108,10 @@ main {
 .profile-button {
   cursor: pointer;
   padding: 0.75rem 1.5rem;
-  border: 1px solid #5a2d82;
+  border: 1px solid #0097b2;
   border-radius: 90px;
   background-color: #fff;
-  color: #5a2d82;
+  color: #0097b2;
   border-radius: 90 px;
   font-weight: bold;
   text-decoration: none;

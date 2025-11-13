@@ -47,7 +47,7 @@ const isAdmin = computed(() => {
 
             <template v-if="authService.userState.isLoggedIn">
               <li><RouterLink to="/my-ads" @click="handleClose">{{ isAdmin ? 'Lista de anúncios' : 'Meus Anúncios' }}</RouterLink></li>
-              <li v-if="!isAdmin"><RouterLink to="/favorites" @click="handleClose">Favoritos</RouterLink></li>
+              <li><RouterLink to="/favorites" @click="handleClose">Favoritos</RouterLink></li>
               <li><RouterLink to="/messages" @click="handleClose">Mensagens</RouterLink></li>
               <li v-if="isAdmin"><RouterLink to="/admin/users" @click="handleClose">Gerenciar Usuários</RouterLink></li>
               <li><RouterLink to="/profile" @click="handleClose">Dados Cadastrais</RouterLink></li>

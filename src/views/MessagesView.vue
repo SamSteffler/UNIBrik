@@ -24,7 +24,7 @@
         <div class="conv-info">
           <div class="conv-header">
             <h3>{{ conv.counterpart_name }}</h3>
-            <span class="conv-time">{{ formatTime(conv.last_message_time) }}</span>
+            <span v-if="!conv.unread_count" class="conv-time">{{ formatTime(conv.last_message_time) }}</span>
           </div>
           <p class="product-title">{{ conv.product_title }}</p>
           <p class="last-message">{{ conv.last_message }}</p>
@@ -82,9 +82,27 @@ async function loadConversations() {
   }
 }
 
-function openChat(conv) {
+async function openChat(conv) {
   selectedConv.value = conv;
   chatOpen.value = true;
+
+  // Zera imediatamente no frontend (para sumir visualmente)
+  conv.unread_count = 0;
+
+  // Tenta marcar como lidas no backend
+  try {
+    await fetch(url(`/api/conversations/markAsRead`), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userState.user.id,
+        productId: conv.product_id,
+        counterpartId: conv.counterpart_id,
+      }),
+    });
+  } catch (e) {
+    console.warn('Falha ao marcar mensagens como lidas:', e);
+  }
 }
 
 function handleChatClose() {
@@ -152,7 +170,7 @@ h2 {
   display: flex;
   gap: 16px;
   padding: 16px;
-  background: white;
+  background: #f2f2f2;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
