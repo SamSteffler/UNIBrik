@@ -2,7 +2,7 @@
   <div class="sidebar">
     <ul>
       <li v-for="categoria in categorias" :key="categoria">
-        <a href="#">
+        <a @click="filterByCategory(categoria)">
           <span>{{ categoria }}</span>
           <span class="arrow">➜</span>
         </a>
@@ -12,15 +12,25 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 const categorias = [
   "Livros", 
   "Eletrônicos", 
   "Móveis", 
   "Roupas", 
-  "Materiais didáticos", 
-  "Serviços", 
-  "Aluguel"
+  "Materiais", 
+  "Serviços"
 ]
+
+function filterByCategory(categoria) {
+  router.push({
+    path: '/search',
+    query: { category: categoria }
+  })
+}
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@
   <div class="my-ads">
     <div class="header">
       <h2 class="h2">{{ isAdmin ? 'Lista de Anúncios' : 'Meus Anúncios' }}</h2>
-      <button @click="goCreate" class="create-button">Novo anúncio</button>
+      <button v-if="!isAdmin" @click="goCreate" class="create-button">Novo anúncio</button>
     </div>
 
     <div v-if="loading">Carregando...</div>
@@ -54,26 +54,19 @@ async function load() {
   error.value = null;
 
   try {
-    // 🔄 Mantém o mesmo endpoint antigo, que funcionava
-    const res = await fetch(url(`/api/my-products?seller_id=${userState.user.id}`));
+    let res;
+    if (isAdmin.value) {
+      // Admin: carrega todos os anúncios
+      res = await fetch(url('/api/admin/products/all'), {
+        headers: { 'x-admin-id': String(userState.user.id) }
+      });
+    } else {
+      // Usuário regular: carrega apenas seus anúncios
+      res = await fetch(url(`/api/my-products?seller_id=${userState.user.id}`));
+    }
+    
     const data = await res.json();
-    const items = data.results || [];
-
-    // Garante que os anúncios tenham imagens
-    const withImages = await Promise.all(
-      items.map(async (it) => {
-        if (it.images && it.images.length) return it;
-        try {
-          const ir = await fetch(url(`/api/products/${it.id}/images`));
-          const idata = await ir.json();
-          return { ...it, images: idata.images || [] };
-        } catch {
-          return it;
-        }
-      })
-    );
-
-    results.value = withImages;
+    results.value = data.results || [];
   } catch (e) {
     console.error(e);
     error.value = 'Erro ao carregar anúncios.';
