@@ -56,6 +56,15 @@ watch(() => route.query.q, (newQ) => {
   doSearch();
 });
 
+// React to category changes in the URL
+watch(() => route.query.category, (newCategory) => {
+  if (newCategory) {
+    filters.value.selectedCategories = [newCategory];
+    query.value = '';
+    doSearch();
+  }
+}, { immediate: true });
+
 // Função para lidar com mudanças nos filtros
 function onFiltersChanged(newFilters) {
   filters.value = newFilters;
