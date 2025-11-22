@@ -30,7 +30,7 @@ const isAdmin = computed(() => {
   return user && (user.role === 'admin' || user.role === 'supervisor');
 });
 
-// Verifica se o usuário tem endereço cadastrado
+// Verifica se o usuario tem endereco cadastrado
 const hasAddress = computed(() => {
   const user = authService.userState.user;
   return user.address_street || user.address_city || user.address_cep;

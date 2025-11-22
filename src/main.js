@@ -3,7 +3,7 @@ import vue3GoogleLogin from 'vue3-google-login'
 
 import App from './App.vue'
 import router from './router'
-import './assets/main.css' // Importa o CSS global
+import './assets/main.css'
 
 const app = createApp(App)
 
