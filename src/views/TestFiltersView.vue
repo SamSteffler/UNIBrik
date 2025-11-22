@@ -47,7 +47,7 @@ function onFiltersChanged(newFilters) {
   const timestamp = new Date().toLocaleTimeString()
   const changes = []
   
-  // Detectar mudanças específicas
+  // Detectar mudancas especificas
   if (newFilters.minPrice !== filters.value.minPrice) {
     changes.push(`Preço mínimo: ${filters.value.minPrice} → ${newFilters.minPrice}`)
   }
@@ -73,7 +73,7 @@ function onFiltersChanged(newFilters) {
       description: changes.join(' | ')
     })
     
-    // Manter apenas as últimas 10 mudanças
+    // Manter apenas as ultimas 10 mudanças
     if (changeLog.value.length > 10) {
       changeLog.value = changeLog.value.slice(0, 10)
     }

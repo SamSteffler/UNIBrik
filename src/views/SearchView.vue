@@ -50,27 +50,25 @@ function doSearch(searchQuery = '') {
     .finally(() => (loading.value = false));
 }
 
-// React to query changes in the URL (this makes Header -> /search?q=... work)
+// Modificacao de query na URL
 watch(() => route.query.q, (newQ) => {
   query.value = newQ || '';
   doSearch();
 });
 
-// Função para lidar com mudanças nos filtros
+// Lida com mudanca de filtros
 function onFiltersChanged(newFilters) {
   filters.value = newFilters;
   console.log('Filtros alterados:', newFilters);
-  doSearch(); // Executar busca quando filtros mudarem
+  doSearch();
 }
 
-// Função para favoritar (placeholder)
+// Funcao para favoritar (placeholder)
 function toggleFavorite(productId) {
-  // prevent supervisors from favoriting
   const stored = localStorage.getItem('user');
   const user = stored ? JSON.parse(stored) : null;
   if (!user) return alert('Você precisa estar logado para favoritar produtos.');
   if (user.role === 'supervisor') return alert('Contas supervisor não podem favoritar anúncios.');
-  // Favorite/unfavorite behavior is implemented on product page; keep simple here or implement optimistic UI
   alert('Favoritar/desfavoritar a partir da página do produto por enquanto.');
 }
 
@@ -90,7 +88,7 @@ onMounted(() => {
       />
     </aside>
 
-    <!-- Área principal com resultados -->
+    <!-- Area principal com resultados -->
     <main class="main-content">
       <!-- Status da busca -->
       <div class="search-status">
@@ -132,7 +130,7 @@ onMounted(() => {
             <p class="product-location">{{ item.location }}</p>
           </div>
 
-          <!-- Heart icon for favorites -->
+          <!--Icone coracao para favoritos -->
           <button class="favorite-btn" @click.stop="toggleFavorite(item.id)">
             <span class="heart">♡</span>
           </button>

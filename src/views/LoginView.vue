@@ -9,7 +9,7 @@ const router = useRouter();
 const email = ref('');
 const password = ref('');
 
-// MODIFICADO: Função de login com e-mail e senha
+// MODIFICADO: Funcao de login com e-mail e senha
 const handleEmailLogin = async () => {
   try {
   const res = await fetch(url('/api/auth/login'), {
@@ -21,32 +21,31 @@ const handleEmailLogin = async () => {
     const data = await res.json();
 
     if (!res.ok) {
-      // Check if user is blocked
+      // Verifica se usuario esta bloqueado
       if (res.status === 403 && data.blocked) {
-        // Store user data temporarily to show blocked screen
         authService.login(data.user || { email: email.value, approved: 0 });
         router.push('/blocked');
         return;
       }
-      // Se a resposta não for 2xx, lança um erro com a mensagem do backend
+      // Se a resposta não for 2xx = erro
       throw new Error(data.error || 'Falha no login.');
     }
 
     // Se o login for bem-sucedido:
-    authService.login(data.user); // 1. Salva o estado do usuário
-    router.push('/profile');     // 2. Redireciona para o perfil
+    authService.login(data.user); // Salva o estado do usuario
+    router.push('/profile');      // Redireciona para o perfil
 
   } catch (error) {
     console.error("Erro no login:", error);
-    alert(error.message); // Exibe o erro para o usuário
+    alert(error.message); // Exibe o erro para o usuario
   }
 };
 // MODIFICADO: Callback para o sucesso do login com Google
 const onLoginSuccess = async (response) => {
   const userData = JSON.parse(atob(response.credential.split('.')[1]));
   
-  // AQUI ESTÁ A NOVA LÓGICA
-  // 1. Enviar os dados para o backend para verificação
+  // NOVA LOGICA
+  // Enviar os dados para o backend para verificacao
   const res = await fetch(url('/api/auth/google'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -60,14 +59,14 @@ const onLoginSuccess = async (response) => {
 
   const data = await res.json();
 
-  if (res.status === 200) { // 2. Se o usuário já existe, faz o login
+  if (res.status === 200) { // faz o login se ja existente
     authService.login(data.user);
     router.push('/profile');
-  } else if (res.status === 403 && data.blocked) { // User is blocked
+  } else if (res.status === 403 && data.blocked) { // bloqueado
     authService.login(data.user || { email: userData.email, approved: 0, name: userData.name });
     router.push('/blocked');
-  } else if (res.status === 404) { // 3. Se não existe, redireciona para o cadastro
-    // Passamos os dados do Google como query params para a página de registro
+  } else if (res.status === 404) { // redireciona para o cadastro se nao existente
+    // dados do Google como query params para a pagina de registro
     router.push({ 
         name: 'register', 
         query: { 
@@ -78,7 +77,6 @@ const onLoginSuccess = async (response) => {
         } 
     });
   } else {
-    // Tratar outros erros
     console.error('Falha na autenticação:', data.error);
   }
 };
@@ -92,9 +90,7 @@ const goToRegister = () => {
 };
 
 // coisa do pao
-import logo from '../assets/blue-logo-1.png'
-import facebookLogo from '../assets/facebook-logo.png'
-import googleLogo from '../assets/google-logo.png'  
+import logo from '../assets/blue-logo-1.png' 
 </script>
 
 <template>
