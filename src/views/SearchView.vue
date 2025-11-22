@@ -51,6 +51,7 @@ function doSearch(searchQuery = '') {
 }
 
 // Modificacao de query na URL
+// Modificacao de query na URL
 watch(() => route.query.q, (newQ) => {
   query.value = newQ || '';
   doSearch();
@@ -65,13 +66,24 @@ watch(() => route.query.category, (newCategory) => {
   }
 }, { immediate: true });
 
-// Função para lidar com mudanças nos filtros
+// React to category changes in the URL
+watch(() => route.query.category, (newCategory) => {
+  if (newCategory) {
+    filters.value.selectedCategories = [newCategory];
+    query.value = '';
+    doSearch();
+  } 
+}, { immediate: true });
+
+// Lida com mudanca de filtros
 function onFiltersChanged(newFilters) {
   filters.value = newFilters;
   console.log('Filtros alterados:', newFilters);
   doSearch();
+  doSearch();
 }
 
+// Funcao para favoritar (placeholder)
 // Funcao para favoritar (placeholder)
 function toggleFavorite(productId) {
   const stored = localStorage.getItem('user');
@@ -97,6 +109,7 @@ onMounted(() => {
       />
     </aside>
 
+    <!-- Area principal com resultados -->
     <!-- Area principal com resultados -->
     <main class="main-content">
       <!-- Status da busca -->
