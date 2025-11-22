@@ -1,4 +1,13 @@
 
+/*
+------------- add_role_column.js -------------
+Adiciona a coluna 'role' na tabela 'users'
+com valor default 'user'
+
+Uso: node add_role_column.js
+*/
+
+
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./unibrik.db');
 db.serialize(() => {

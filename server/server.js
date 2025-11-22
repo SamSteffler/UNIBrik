@@ -1,12 +1,18 @@
-// unibrik-backend/server.js
+
+/*
+------------- server.js -------------
+Servidor principal da API UniBrik
+Uso: node server.js
+*/
+
 
 const express = require("express");
 const cors = require("cors");
 const db = require("./database.js");
-const bcrypt = require("bcrypt"); // 1. Importe o bcrypt
+const bcrypt = require("bcrypt");
 const products = require("./products.js");
 const messages = require("./messageserver.js");
-const { nanoid } = require('nanoid'); // Garanta que o nanoid está importado
+const { nanoid } = require('nanoid');
 const os = require('os');
 const multer = require('multer');
 const path = require('path');
@@ -19,7 +25,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Simple request logger to help debug incoming API calls
+// Logger middleware
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
     next();
@@ -27,7 +33,7 @@ app.use((req, res, next) => {
 
 // Rota de Teste
 app.get("/", (req, res) => {
-    res.json({ message: "Servidor UNI Brik está no ar!" });
+    res.json({ message: "Servidor UniBrik está no ar!" });
 });
 
 // ROTA DE REGISTRO (MODIFICADA)
@@ -46,16 +52,14 @@ app.post("/api/auth/register", async (req, res) => {
     }
 
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
-    const publicId = nanoid(16);  // 2. Gere um novo ID público único
+    const publicId = nanoid(16); 
 
-    // 3. Adicione o public_id na query de inserção
     const sql = `INSERT INTO users (
         public_id, name, email, password, google_sub, picture,
         birth_date, phone, address_cep, address_street, address_number,
         address_complement, address_district, address_city, address_uf
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
-    // 3. Adicione os novos parâmetros na ordem correta
     const params = [
         publicId, name, email, hashedPassword, google_sub, picture,
         birth_date, phone, address_cep, address_street, address_number,
@@ -86,12 +90,12 @@ app.post("/api/auth/login", (req, res) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        // Se não encontrar o usuário ou se ele não tiver senha (só usa Google)
+        // Se nao encontrar o usuario ou se ele nao tiver senha (so usa Google)
         if (!user || !user.password) {
             return res.status(401).json({ error: "Credenciais inválidas." });
         }
 
-        // Check if user is blocked
+        // Verifica se o usuario esta bloqueado
         if (user.approved === 0) {
             return res.status(403).json({ 
                 error: "Conta bloqueada", 
@@ -103,8 +107,7 @@ app.post("/api/auth/login", (req, res) => {
         // Compara a senha enviada com o hash salvo no banco
         const match = await bcrypt.compare(password, user.password);
         if (match) {
-            // Senha correta!
-            // Remove a senha do objeto antes de enviar de volta
+            // Senha correta - remove a senha do objeto antes de enviar de volta
             const { password, ...userToSend } = user;
             res.status(200).json({ message: "Login bem-sucedido.", user: userToSend });
         } else {
@@ -126,7 +129,7 @@ app.post("/api/auth/google", (req, res) => {
         }
 
         if (user) {
-            // Check if user is blocked
+            // Verifica se o usuario esta bloqueado
             if (user.approved === 0) {
                 return res.status(403).json({ 
                     error: "Conta bloqueada", 
@@ -135,17 +138,17 @@ app.post("/api/auth/google", (req, res) => {
                 });
             }
             
-            // Usuário existe, login bem-sucedido
+            // Usuario existe - login bem-sucedido
             const { password, ...userToSend } = user;
             return res.status(200).json({ message: "Login bem-sucedido.", user: userToSend });
         } else {
-            // Usuário não encontrado, informa o frontend para redirecionar ao cadastro
+            // Usuario nao encontrado - informa o frontend para redirecionar ao cadastro
             return res.status(404).json({ message: "Usuário não encontrado." });
         }
     });
 });
 
-// 5. ROTA PARA BUSCAR DADOS DO USUÁRIO POR ID
+// 5. ROTA PARA BUSCAR DADOS DO USUARIO POR ID
 app.get("/api/auth/user/:id", (req, res) => {
     const userId = req.params.id;
     
@@ -164,7 +167,7 @@ app.get("/api/auth/user/:id", (req, res) => {
     });
 });
 
-// 6. ROTA PARA ATUALIZAR DADOS DO USUÁRIO
+// 6. ROTA PARA ATUALIZAR DADOS DO USUARIO
 app.put("/api/auth/user/:id", async (req, res) => {
     const userId = req.params.id;
     const {
@@ -173,7 +176,7 @@ app.put("/api/auth/user/:id", async (req, res) => {
         address_complement, address_district, address_city, address_uf
     } = req.body;
 
-    // Verifica se o usuário existe
+    // Verifica se o usuario existe
     db.get("SELECT * FROM users WHERE id = ?", [userId], async (err, user) => {
         if (err) {
             return res.status(500).json({ error: err.message });
@@ -182,7 +185,7 @@ app.put("/api/auth/user/:id", async (req, res) => {
             return res.status(404).json({ error: "Usuário não encontrado." });
         }
 
-        // Prepara os campos para atualização
+        // Prepara campos para atualizacao
         let updateFields = [];
         let params = [];
 
@@ -244,7 +247,7 @@ app.put("/api/auth/user/:id", async (req, res) => {
                 return res.status(500).json({ error: err.message });
             }
 
-            // Retorna o usuário atualizado
+            // Retorna o usuario atualizado
             db.get("SELECT * FROM users WHERE id = ?", [userId], (err, updatedUser) => {
                 if (err) {
                     return res.status(500).json({ error: err.message });
@@ -257,7 +260,7 @@ app.put("/api/auth/user/:id", async (req, res) => {
 }); 
 
 // --- ADMIN HELPERS & ROUTES ---
-// Helper to check whether a given user id is an admin. Caller should provide adminId (from header/query)
+// Helper para verificar se o usuario e admin ou supervisor 
 function isAdmin(adminId, cb) {
     if (!adminId) return cb(null, false);
     db.get('SELECT role FROM users WHERE id = ?', [adminId], (err, row) => {
@@ -266,7 +269,7 @@ function isAdmin(adminId, cb) {
     });
 }
 
-// Approve a user (set approved = 1)
+// Aprova usuario (set approved = 1)
 app.post('/api/admin/approve-user/:id', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     const userId = req.params.id;
@@ -280,7 +283,7 @@ app.post('/api/admin/approve-user/:id', (req, res) => {
     });
 });
 
-// Unapprove a user (set approved = 0) and block all their products
+// Desaprova usuario (set approved = 0) e bloqueia todos os produtos dele
 app.post('/api/admin/unapprove-user/:id', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     const userId = req.params.id;
@@ -288,15 +291,14 @@ app.post('/api/admin/unapprove-user/:id', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!ok) return res.status(403).json({ error: 'Admin privileges required' });
         
-        // First, block the user
+        // Bloqueia o usuario
         db.run('UPDATE users SET approved = 0 WHERE id = ?', [userId], function(uerr) {
             if (uerr) return res.status(500).json({ error: uerr.message });
             
-            // Then, block all products from this user
+            // Bloqueia todos os produtos do usuario
             db.run('UPDATE products SET status = "blocked" WHERE seller_id = ?', [userId], function(perr) {
                 if (perr) {
                     console.error('Error blocking user products:', perr);
-                    // Still return success for user block even if products update fails
                 }
                 
                 res.json({ 
@@ -309,7 +311,7 @@ app.post('/api/admin/unapprove-user/:id', (req, res) => {
     });
 });
 
-// Delete a user and their products/images
+// Deleta usuario e todos os produtos relacionados
 app.delete('/api/admin/user/:id', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     const userId = req.params.id;
@@ -317,11 +319,12 @@ app.delete('/api/admin/user/:id', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!ok) return res.status(403).json({ error: 'Admin privileges required' });
 
-        // First, collect product ids for this seller
+        // Seleciona produtos pela ID de usuario
         db.all('SELECT id FROM products WHERE seller_id = ?', [userId], (pErr, rows) => {
             if (pErr) return res.status(500).json({ error: pErr.message });
             const ids = (rows || []).map(r => r.id);
-            // remove image directories for each product
+            
+            // Remove diretorios de imagens
             ids.forEach(pid => {
                 try {
                     const dir = path.join(__dirname, '..', 'public', 'images', 'ads', String(pid));
@@ -333,14 +336,15 @@ app.delete('/api/admin/user/:id', (req, res) => {
                 }
             });
 
-            // Delete product_images rows and products rows
+            // Deleta referencias de imagens e produtos
             const placeholders = ids.map(() => '?').join(',') || 'NULL';
             if (ids.length > 0) {
                 db.run(`DELETE FROM product_images WHERE product_id IN (${placeholders})`, ids, (diErr) => {
                     if (diErr) console.log('Could not delete product_images for seller', diErr.message);
                     db.run(`DELETE FROM products WHERE id IN (${placeholders})`, ids, (dpErr) => {
                         if (dpErr) console.log('Could not delete products for seller', dpErr.message);
-                        // finally delete user
+                        
+                        // Deleta usuario
                         db.run('DELETE FROM users WHERE id = ?', [userId], function(duErr) {
                             if (duErr) return res.status(500).json({ error: duErr.message });
                             res.json({ deleted_user: this.changes > 0 });
@@ -348,7 +352,7 @@ app.delete('/api/admin/user/:id', (req, res) => {
                     });
                 });
             } else {
-                // no products, just delete user
+                // Sem produtos - apenas deleta usuario
                 db.run('DELETE FROM users WHERE id = ?', [userId], function(duErr) {
                     if (duErr) return res.status(500).json({ error: duErr.message });
                     res.json({ deleted_user: this.changes > 0 });
@@ -358,7 +362,7 @@ app.delete('/api/admin/user/:id', (req, res) => {
     });
 });
 
-// Approve a product (set status = 'allowed')
+// Aprovar um produto (set status = 'allowed')
 app.post('/api/admin/approve-product/:id', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     const productId = req.params.id;
@@ -372,7 +376,7 @@ app.post('/api/admin/approve-product/:id', (req, res) => {
     });
 });
 
-// Block a product (set status = 'blocked')
+// Bloquear um produto (set status = 'blocked')
 app.post('/api/admin/block-product/:id', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     const productId = req.params.id;
@@ -386,14 +390,15 @@ app.post('/api/admin/block-product/:id', (req, res) => {
     });
 });
 
-// Delete a single product (admin)
+// Deletar um produto (admin)
 app.delete('/api/admin/product/:id', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     const productId = req.params.id;
     isAdmin(adminId, (err, ok) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!ok) return res.status(403).json({ error: 'Admin privileges required' });
-        // remove image dir
+        
+        // Remove diretorio de imagens
         try {
             const dir = path.join(__dirname, '..', 'public', 'images', 'ads', String(productId));
             if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
@@ -406,7 +411,7 @@ app.delete('/api/admin/product/:id', (req, res) => {
     });
 });
 
-// List pending products (requires admin)
+// Listagem de produtos pendentes (somente admin)
 app.get('/api/admin/products/pending', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     isAdmin(adminId, (err, ok) => {
@@ -419,7 +424,7 @@ app.get('/api/admin/products/pending', (req, res) => {
     });
 });
 
-// List all products (admin)
+// Lista todos os produtos (admin)
 app.get('/api/admin/products/all', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     isAdmin(adminId, (err, ok) => {
@@ -427,7 +432,8 @@ app.get('/api/admin/products/all', (req, res) => {
         if (!ok) return res.status(403).json({ error: 'Admin privileges required' });
         db.all('SELECT * FROM products ORDER BY created_at DESC', [], (perr, rows) => {
             if (perr) return res.status(500).json({ error: perr.message });
-            // Attach images to each product
+            
+            // Anexa imagens a cada produto
             if (!rows || rows.length === 0) return res.json({ results: rows });
             const base = `${req.protocol}://${req.get('host')}`;
             let remaining = rows.length;
@@ -447,7 +453,7 @@ app.get('/api/admin/products/all', (req, res) => {
     });
 });
 
-// List users (admin) — optional filter by approved status via ?approved=0|1
+// Lista todos os usuarios (admin) — filtro opcional por aprovados/nao aprovados
 app.get('/api/admin/users', (req, res) => {
     const adminId = req.header('x-admin-id') || req.query.admin_id;
     const approvedFilter = req.query.approved;
@@ -468,7 +474,7 @@ app.get('/api/admin/users', (req, res) => {
     });
 });
 
-// Helper para obter IP local (primeiro IPv4 não-interno)
+// Helper para obter IP local (primeiro IPv4 nao-interno)
 function getLocalIP() {
     const ifaces = os.networkInterfaces();
     for (const name of Object.keys(ifaces)) {
@@ -497,7 +503,8 @@ app.listen(PORT, '0.0.0.0', () => {
 app.post('/api/products', (req, res) => {
     const product = req.body;
     if (!product.title) return res.status(400).json({ error: 'Title is required' });
-    // Prevent supervisors from creating products
+    
+    // Previne supervisores de criarem anuncios
     const sellerId = product.seller_id;
     if (!sellerId) return res.status(400).json({ error: 'seller_id is required' });
     db.get('SELECT role FROM users WHERE id = ?', [sellerId], (uErr, row) => {
@@ -511,7 +518,7 @@ app.post('/api/products', (req, res) => {
     });
 });
 
-// Free products
+// Produtos gratuitos
 app.get('/api/products/free', (req, res) => {
     const limit = parseInt(req.query.limit || '12', 10);
     products.getFreeProducts(limit, (err, rows) => {
@@ -522,10 +529,10 @@ app.get('/api/products/free', (req, res) => {
     });
 });
 
-// Recent products (most recent additions)
+// Produtos recentes
 app.get('/api/products/recent', (req, res) => {
     const limit = parseInt(req.query.limit || '12', 10);
-    // reuse searchProducts with empty query -> returns recent items
+    // Busca produtos ordenados por data de criacao decrescente
     products.searchProducts('', limit, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         const base = `${req.protocol}://${req.get('host')}`;
@@ -541,32 +548,35 @@ app.get('/api/products/:id', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: 'Product not found' });
         
-        // If product is not allowed (pending or blocked), check permissions
+        // Verifica se o produto e pendente ou bloqueado
         if (row.status !== 'allowed') {
             const adminId = req.header('x-admin-id') || req.query.admin_id;
             const sellerId = req.header('x-seller-id') || req.query.seller_id;
             
-            // Allow if user is admin OR if user is the seller (owner)
+            // Permitir se for o dono do anuncio ou admin
             if (sellerId && parseInt(sellerId) === row.seller_id) {
-                // Owner can view their own pending/blocked products
+                                
+                // Publicante pode ver os anuncios dele (pendentes ou bloqueados)
                 if (row.images && row.images.length) {
                     row.images = row.images.map(p => `${req.protocol}://${req.get('host')}${p}`);
                 }
                 return res.json({ product: row });
             }
             
-            // Check if admin
+            // Verifica se e admin
             return isAdmin(adminId, (iErr, ok) => {
                 if (iErr) return res.status(500).json({ error: iErr.message });
                 if (!ok) return res.status(404).json({ error: 'Product not found' });
-                // prefix images and return
+                
+                // Admin pode ver
                 if (row.images && row.images.length) {
                     row.images = row.images.map(p => `${req.protocol}://${req.get('host')}${p}`);
                 }
                 return res.json({ product: row });
             });
         }
-        // prefix images
+
+        // Prefixa imagens
         if (row.images && row.images.length) {
             row.images = row.images.map(p => `${req.protocol}://${req.get('host')}${p}`);
         }
@@ -598,7 +608,7 @@ app.get('/api/products', (req, res) => {
     });
 });
 
-// Produtos de um vendedor (meus anúncios)
+// Produtos de um vendedor (meus anuncios)
 app.get('/api/my-products', (req, res) => {
     const seller_id = req.query.seller_id;
     if (!seller_id) return res.status(400).json({ error: 'seller_id is required' });
@@ -636,7 +646,8 @@ app.post('/api/products/:id/favorite', (req, res) => {
     const productId = req.params.id;
     const userId = req.body.user_id || req.query.user_id;
     if (!userId) return res.status(400).json({ error: 'user_id is required' });
-    // prevent supervisors from favoriting
+
+    // Previne supervisores de favoritar anuncios
     db.get('SELECT role FROM users WHERE id = ?', [userId], (uErr, row) => {
         if (uErr) return res.status(500).json({ error: uErr.message });
         const role = (row && row.role) || 'user';
@@ -664,7 +675,7 @@ app.delete('/api/products/:id/favorite', (req, res) => {
     });
 });
 
-// List favorites for a user
+// Lista favoritos de um usuario
 app.get('/api/users/:id/favorites', (req, res) => {
     const userId = req.params.id;
     const limit = parseInt(req.query.limit || '50', 10);
@@ -677,12 +688,14 @@ app.get('/api/users/:id/favorites', (req, res) => {
     });
 });
 
-// Serve images folder statically
+// =========== IMAGE UPLOAD ENDPOINTS ============
+
+// Armazenamento de imagens
 const imagesDir = path.join(__dirname, '..', 'public', 'images', 'ads');
 fs.mkdirSync(imagesDir, { recursive: true });
 app.use('/images/ads', express.static(imagesDir));
 
-// Multer setup: store files under public/images/ads/<productId>/
+// Multer setup - armazena imagens em pastas por produto
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const productId = req.params.id;
@@ -691,18 +704,19 @@ const storage = multer.diskStorage({
         cb(null, dest);
     },
     filename: (req, file, cb) => {
-        // include timestamp to avoid collisions
+        // Inclui timestamp no nome do arquivo para evitar conflitos
         const name = Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
         cb(null, name);
     }
 });
 const upload = multer({ storage });
 
-// Upload image(s) for a product
+// Upload de imagens para um produto
 app.post('/api/products/:id/images', upload.array('images', 8), (req, res) => {
     const productId = req.params.id;
     const relPaths = (req.files || []).map(f => `/images/ads/${productId}/${f.filename}`);
-    // store in DB for convenience (store relative paths)
+
+    // armazana caminhos no banco
     products.addImages(productId, relPaths, (err) => {
         if (err) return res.status(500).json({ error: err.message });
         const abs = relPaths.map(p => `${req.protocol}://${req.get('host')}${p}`);
@@ -710,7 +724,7 @@ app.post('/api/products/:id/images', upload.array('images', 8), (req, res) => {
     });
 });
 
-// List images for a product
+// Lista imagens de um produto
 app.get('/api/products/:id/images', (req, res) => {
     const productId = req.params.id;
     products.getImages(productId, (err, images) => {
@@ -720,7 +734,7 @@ app.get('/api/products/:id/images', (req, res) => {
     });
 });
 
-// Delete an image (by filename)
+// Deleta uma imagem pelo nome do arquivo
 app.delete('/api/products/:id/images', (req, res) => {
     const productId = req.params.id;
     const { filename } = req.body;
@@ -737,7 +751,7 @@ app.delete('/api/products/:id/images', (req, res) => {
 
 // ============ MESSAGING / CHAT ENDPOINTS ============
 
-// Get all conversations for the current user
+// Retorna conversas de um usuario
 app.get('/api/conversations', (req, res) => {
     const userId = req.query.userId;
     if (!userId) return res.status(400).json({ error: 'userId is required' });
@@ -753,7 +767,7 @@ app.get('/api/conversations', (req, res) => {
     });
 });
 
-// Get messages between two users about a product
+// Retorna mensagens de uma conversa de um produto
 app.get('/api/messages/:productId/:counterpartId', (req, res) => {
     const { productId, counterpartId } = req.params;
     const userId = req.query.userId;
@@ -766,7 +780,7 @@ app.get('/api/messages/:productId/:counterpartId', (req, res) => {
     });
 });
 
-// Send a new message
+// Envia nova mensagem
 app.post('/api/messages', (req, res) => {
     const { productId, senderId, receiverId, message } = req.body;
     
@@ -780,7 +794,7 @@ app.post('/api/messages', (req, res) => {
     });
 });
 
-// Mark a conversation as read
+// Marca conversa como lida
 app.patch('/api/messages/:productId/:counterpartId/read', (req, res) => {
     const { productId, counterpartId } = req.params;
     const userId = req.query.userId;
@@ -793,7 +807,7 @@ app.patch('/api/messages/:productId/:counterpartId/read', (req, res) => {
     });
 });
 
-// Get unread message count
+// Retorna numero de mensagens nao lidas para um usuario
 app.get('/api/messages/unread/count', (req, res) => {
     const userId = req.query.userId;
     if (!userId) return res.status(400).json({ error: 'userId is required' });
@@ -804,7 +818,7 @@ app.get('/api/messages/unread/count', (req, res) => {
     });
 });
 
-// Fallback JSON 404 handler (avoid Express default HTML responses)
+// Fallback JSON 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: `Not found: ${req.method} ${req.originalUrl}` });
 });

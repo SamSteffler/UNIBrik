@@ -1,14 +1,15 @@
-// messageserver.js
-// Handles all chat/messaging logic for UNIBrik
+/*
+------------- messageserver.js -------------
+Gerenciamento de mensagens entre usuarios no banco de dados
+
+Uso: node wipe_products.js
+*/
 
 const db = require('./database');
 
-/**
- * Get all conversations for a user
- * Groups messages by product and counterpart, returns latest message for each conversation
- */
+// Retorna todas as conversas de um usuario
 function getConversations(userId, cb) {
-  // First, get all distinct conversation pairs
+  // conversas distintas para mesmo produto
   const sql = `
     SELECT DISTINCT
       m.product_id,
@@ -29,12 +30,11 @@ function getConversations(userId, cb) {
     if (err) return cb(err);
     if (!rows || rows.length === 0) return cb(null, []);
     
-    // For each conversation, get the last message and unread count
+    // contagens de mensagens nao lidas e ultima mensagem
     let remaining = rows.length;
     const results = [];
     
     rows.forEach(row => {
-      // Get last message
       db.get(`
         SELECT message, created_at
         FROM messages
@@ -44,7 +44,6 @@ function getConversations(userId, cb) {
         LIMIT 1
       `, [row.product_id, userId, row.counterpart_id, row.counterpart_id, userId], (err2, lastMsg) => {
         
-        // Get unread count
         db.get(`
           SELECT COUNT(*) as count
           FROM messages
@@ -63,7 +62,6 @@ function getConversations(userId, cb) {
           
           remaining--;
           if (remaining === 0) {
-            // Sort by last message time
             results.sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time));
             cb(null, results);
           }
@@ -73,9 +71,8 @@ function getConversations(userId, cb) {
   });
 }
 
-/**
- * Get all messages between two users about a specific product
- */
+
+// Retorna todas as mensagens entre dois usuarios para um produto
 function getMessages(productId, userId, counterpartId, cb) {
   const sql = `
     SELECT 
@@ -93,9 +90,7 @@ function getMessages(productId, userId, counterpartId, cb) {
   db.all(sql, [productId, userId, counterpartId, counterpartId, userId], cb);
 }
 
-/**
- * Send a new message
- */
+// Envia uma mensagem de um usuario para outro sobre um produto
 function sendMessage(productId, senderId, receiverId, message, cb) {
   const sql = `
     INSERT INTO messages (product_id, sender_id, receiver_id, message)
@@ -105,7 +100,7 @@ function sendMessage(productId, senderId, receiverId, message, cb) {
   db.run(sql, [productId, senderId, receiverId, message], function(err) {
     if (err) return cb(err);
     
-    // Return the created message with sender info
+    // Retorna a mensagem criada com dados do remetente
     db.get(`
       SELECT m.*, u.name as sender_name, u.picture as sender_picture
       FROM messages m
@@ -115,9 +110,7 @@ function sendMessage(productId, senderId, receiverId, message, cb) {
   });
 }
 
-/**
- * Mark a message as read
- */
+// Marca uma mensagem como lida
 function markAsRead(messageId, cb) {
   const sql = `UPDATE messages SET read = 1 WHERE id = ?`;
   db.run(sql, [messageId], function(err) {
@@ -126,9 +119,7 @@ function markAsRead(messageId, cb) {
   });
 }
 
-/**
- * Mark all messages in a conversation as read
- */
+// Marca todas as mensagens de uma conversa como lida
 function markConversationAsRead(productId, userId, counterpartId, cb) {
   const sql = `
     UPDATE messages 
@@ -145,9 +136,8 @@ function markConversationAsRead(productId, userId, counterpartId, cb) {
   });
 }
 
-/**
- * Get unread message count for a user
- */
+
+// Retorna a contagem de mensagens nao lidas
 function getUnreadCount(userId, cb) {
   const sql = `SELECT COUNT(*) as count FROM messages WHERE receiver_id = ? AND read = 0`;
   db.get(sql, [userId], (err, row) => {

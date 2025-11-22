@@ -1,10 +1,20 @@
-// Teste das rotas HTTP da API
+
+/*
+------------- test-routes.js -------------
+Script para testar as principais rotas da API do servidor
+Verifica se as respostas estao corretas e se os dados
+sao retornados conforme esperado
+
+Uso: node test-routes.js
+*/
+
+
 const testRoutes = async () => {
   const baseURL = 'http://localhost:3000';
   
   console.log('=== TESTANDO ROTAS DA API ===\n');
   
-  // Teste 1: Rota básica
+  // Teste 1: Rota basica
   try {
     console.log('1. Testando rota básica /...');
     const response = await fetch(`${baseURL}/`);
