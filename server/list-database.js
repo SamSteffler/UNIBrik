@@ -1,47 +1,56 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
+/*
+------------- list-database.js -------------
+Script para listar o conteudo do banco de dados
+e mostrar estatisticas resumidas
+
+Uso: node list-database.js
+---------------------------------------
+*/
+
+
 const dbPath = path.join(__dirname, 'unibrik.db');
-console.log('📁 Database path:', dbPath);
+console.log('-> Database path:', dbPath);
 
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.error('❌ Error opening database:', err.message);
+    console.error('!  Error opening database:', err.message);
     process.exit(1);
   }
-  console.log('✅ Connected to database successfully\n');
+  console.log(' > Connected to database successfully\n');
 });
 
 console.log('\n═══════════════════════════════════════════════════════════════════════════════');
 console.log('                           DATABASE CONTENTS                                    ');
 console.log('═══════════════════════════════════════════════════════════════════════════════\n');
 
-// First, let's check what tables exist
+
+// Lista todas as tabelas no banco
 db.all("SELECT name FROM sqlite_master WHERE type='table'", [], (err, tables) => {
   if (err) {
-    console.error('❌ Error fetching tables:', err);
+    console.error('!  Error fetching tables:', err);
     return;
   }
-  console.log('📋 Available tables:', tables.map(t => t.name).join(', '));
+  console.log(' > Available tables:', tables.map(t => t.name).join(', '));
   console.log('');
 });
 
-// Function to format table output
+// Formatacao de tabela simples
 function printTable(title, rows, columns) {
   if (rows.length === 0) {
-    console.log(`\n📋 ${title}: No records found\n`);
+    console.log(`\n > ${title}: No records found\n`);
     return;
   }
 
-  console.log(`\n📋 ${title} (${rows.length} records):`);
+  console.log(`\n > ${title} (${rows.length} records):`);
   console.log('─'.repeat(120));
   
-  // Print header
   const header = columns.map(col => String(col).padEnd(15)).join(' | ');
   console.log(header);
   console.log('─'.repeat(120));
   
-  // Print rows
   rows.forEach(row => {
     const rowStr = columns.map(col => {
       let val = row[col];
@@ -54,10 +63,10 @@ function printTable(title, rows, columns) {
   console.log('─'.repeat(120) + '\n');
 }
 
-// Query all users
+// Query de todos os usuarios
 db.all('SELECT * FROM users', [], (err, users) => {
   if (err) {
-    console.error('❌ Error fetching users:', err.message);
+    console.error('!  Error fetching users:', err.message);
     console.log('ℹ️  This might mean the users table doesn\'t exist yet. Try running the server first.\n');
     users = [];
   }
@@ -66,7 +75,6 @@ db.all('SELECT * FROM users', [], (err, users) => {
     const userColumns = ['id', 'public_id', 'name', 'email', 'role', 'approved', 'google_sub'];
     printTable('USERS', users, userColumns);
     
-    // Show full details for each user
     if (users.length > 0) {
       console.log('\n👤 Detailed User Information:');
       users.forEach((user, idx) => {
@@ -81,14 +89,14 @@ db.all('SELECT * FROM users', [], (err, users) => {
       console.log('\n');
     }
   } else if (!err) {
-    console.log('\n📋 USERS: No records found\n');
+    console.log('\n > USERS: No records found\n');
   }
   
-  // Query all products
+  // Query de todos os produtos
   db.all('SELECT * FROM products', [], (err, products) => {
     if (err) {
-      console.error('❌ Error fetching products:', err.message);
-      console.log('ℹ️  This might mean the products table doesn\'t exist yet. Try running the server first.\n');
+      console.error('!  Error fetching products:', err.message);
+      console.log(' ( i ) This might mean the products table doesn\'t exist yet. Try running the server first.\n');
       products = [];
     }
     
@@ -96,9 +104,8 @@ db.all('SELECT * FROM users', [], (err, users) => {
       const productColumns = ['id', 'title', 'price', 'condition', 'category', 'status', 'seller_id', 'location'];
       printTable('PRODUCTS', products, productColumns);
       
-      // Show full details for each product
       if (products.length > 0) {
-        console.log('\n📦 Detailed Product Information:');
+        console.log('\n > Detailed Product Information:');
         products.forEach((product, idx) => {
           console.log(`\n  Product ${idx + 1}:`);
           console.log(`    ID: ${product.id}`);
@@ -114,10 +121,10 @@ db.all('SELECT * FROM users', [], (err, users) => {
         console.log('\n');
       }
     } else if (!err) {
-      console.log('\n📦 PRODUCTS: No records found\n');
+      console.log('\n > PRODUCTS: No records found\n');
     }
     
-    // Get summary statistics only if tables exist
+    // Resumo com estatisticas
     if (!err || (users && products)) {
     db.get('SELECT COUNT(*) as total FROM users', [], (err, userCount) => {
       db.get('SELECT COUNT(*) as total FROM products', [], (err, productCount) => {
@@ -127,7 +134,7 @@ db.all('SELECT * FROM users', [], (err, users) => {
               db.get('SELECT COUNT(*) as total FROM users WHERE role = "admin"', [], (err, adminCount) => {
                 db.get('SELECT COUNT(*) as total FROM users WHERE role = "supervisor"', [], (err, supervisorCount) => {
                   
-                  console.log('\n📊 DATABASE SUMMARY:');
+                  console.log('\n - DATABASE SUMMARY:');
                   console.log('═══════════════════════════════════════════════════════════════════════════════');
                   console.log(`  Total Users: ${userCount?.total || 0}`);
                   console.log(`    - Admins: ${adminCount?.total || 0}`);
@@ -148,7 +155,7 @@ db.all('SELECT * FROM users', [], (err, users) => {
       });
     });
     } else {
-      console.log('⚠️  Skipping statistics due to table errors\n');
+      console.log('( ! )  Skipping statistics due to table errors\n');
       db.close();
     }
   });

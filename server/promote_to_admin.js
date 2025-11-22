@@ -1,7 +1,11 @@
-// promote_to_admin.js
-// Usage: node promote_to_admin.js user@example.com
-// This script sets role='admin' for the user with the given email (useful to bootstrap an admin account).
+/*
+------------- promote_to_admin.js -------------
+Script para promover um usuário a administrador
+no banco de dados
 
+Uso: node promote_to_admin.js <email>
+----------------------------------------------
+*/
 const db = require('./database.js');
 
 const email = process.argv[2];

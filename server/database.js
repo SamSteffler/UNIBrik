@@ -1,17 +1,25 @@
-// unibrik-backend/database.js
+
+/*
+------------- database.js -------------
+Modulo de conexao e configuração do banco de dados SQLite
+
+Uso: node database.js
+---------------------------------------
+*/
+
 
 const sqlite3 = require('sqlite3').verbose();
 const DBSOURCE = "unibrik.db";
 
-// Conecta-se ou cria o arquivo de banco de dados
+// Conecta/cria banco de dados SQLite
 const db = new sqlite3.Database(DBSOURCE, (err) => {
     if (err) {
-        // Não foi possível abrir o banco de dados
         console.error(err.message);
         throw err;
     } else {
         console.log('Conectado ao banco de dados SQLite.');
-        // Cria a tabela de usuários se ela não existir
+        
+        // Cria tabela de usuarios se nao existir
         db.run(`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             public_id TEXT NOT NULL UNIQUE,
@@ -35,14 +43,13 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`, (err) => {
             if (err) {
-                // Tabela já pode existir
                 console.log("Erro ao criar tabela 'users'.");
             } else {
                 console.log("Tabela 'users' criada ou já existente.");
             }
         });
 
-        // Cria a tabela de mensagens para chat
+        // Cria a tabela de mensagens para chat se nao existir
         db.run(`CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id INTEGER NOT NULL,
@@ -59,7 +66,7 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
                 console.log("Erro ao criar tabela 'messages'.");
             } else {
                 console.log("Tabela 'messages' criada ou já existente.");
-                // Criar índices para melhorar performance de queries
+                // Criar indices para melhorar performance de queries
                 db.run(`CREATE INDEX IF NOT EXISTS idx_messages_users ON messages(sender_id, receiver_id)`);
                 db.run(`CREATE INDEX IF NOT EXISTS idx_messages_product ON messages(product_id)`);
                 db.run(`CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at DESC)`);
@@ -70,9 +77,9 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
 
 module.exports = db;
 
-// Ensure users and products have admin/approval related columns (safe on existing DB)
+// Garante que as colunas novas existam ao atualizar banco
+// Colunas adicionadas: users.role, users.approved, products.approved, products.status
 db.serialize(() => {
-    // users: add role and approved columns if missing
     db.all("PRAGMA table_info(users)", (err, cols) => {
         if (err) return console.log('Could not inspect users table:', err.message);
         const names = (cols || []).map(c => c.name);
@@ -90,7 +97,6 @@ db.serialize(() => {
         }
     });
 
-    // products: add approved and status columns if missing
     db.all("PRAGMA table_info(products)", (err2, pcols) => {
         if (err2) return console.log('Could not inspect products table:', err2.message);
         const pnames = (pcols || []).map(c => c.name);

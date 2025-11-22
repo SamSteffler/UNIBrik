@@ -62,7 +62,7 @@ const testProducts = [
 
 console.log('Populando banco com dados de teste...');
 
-// Primeiro, vamos verificar se já existem produtos
+// verificar se ja existem produtos
 db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
   if (err) {
     console.error('Erro ao verificar produtos:', err);
