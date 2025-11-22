@@ -51,13 +51,12 @@ function doSearch(searchQuery = '') {
 }
 
 // Modificacao de query na URL
-// Modificacao de query na URL
 watch(() => route.query.q, (newQ) => {
   query.value = newQ || '';
   doSearch();
 });
 
-// React to category changes in the URL
+// Mudanca de categoria na URL
 watch(() => route.query.category, (newCategory) => {
   if (newCategory) {
     filters.value.selectedCategories = [newCategory];
@@ -66,14 +65,6 @@ watch(() => route.query.category, (newCategory) => {
   }
 }, { immediate: true });
 
-// React to category changes in the URL
-watch(() => route.query.category, (newCategory) => {
-  if (newCategory) {
-    filters.value.selectedCategories = [newCategory];
-    query.value = '';
-    doSearch();
-  } 
-}, { immediate: true });
 
 // Lida com mudanca de filtros
 function onFiltersChanged(newFilters) {
@@ -83,7 +74,6 @@ function onFiltersChanged(newFilters) {
   doSearch();
 }
 
-// Funcao para favoritar (placeholder)
 // Funcao para favoritar (placeholder)
 function toggleFavorite(productId) {
   const stored = localStorage.getItem('user');
@@ -109,7 +99,6 @@ onMounted(() => {
       />
     </aside>
 
-    <!-- Area principal com resultados -->
     <!-- Area principal com resultados -->
     <main class="main-content">
       <!-- Status da busca -->
@@ -152,7 +141,7 @@ onMounted(() => {
             <p class="product-location">{{ item.location }}</p>
           </div>
 
-          <!-- Heart icon for favorites -->
+          <!-- Icone coracao dos favoritos -->
           <button 
             class="favorite-btn"
             :class="{ active: item.favorited }"
@@ -160,9 +149,6 @@ onMounted(() => {
           >
             <span class="star" v-if="item.favorited">★</span>
             <span class="star" v-else>☆</span>
-          <!--Icone coracao para favoritos -->
-          <button class="favorite-btn" @click.stop="toggleFavorite(item.id)">
-            <span class="heart">♡</span>
           </button>
         </div>
       </div>
