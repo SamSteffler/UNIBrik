@@ -1,5 +1,10 @@
-// Teste rápido do sistema de filtros
-// Execute este arquivo no servidor para testar a API
+/*
+------------- test-filters.js -------------
+Script para testar o sistema de filtros de produtos
+Verifica se os filtros aplicados retornam os resultados esperados
+
+Uso: node test-filters.js
+*/
 
 const products = require('./products.js');
 
@@ -33,7 +38,7 @@ products.searchProductsWithFilters(filtros, (err, results) => {
   }
 });
 
-// Teste 3: Filtros múltiplos
+// Teste 3: Filtros multiplos
 console.log('\n=== TESTE 3: Filtros múltiplos ===');
 const filtrosMultiplos = {
   selectedCategories: ['Eletrônicos', 'Móveis'],

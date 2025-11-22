@@ -1,8 +1,14 @@
-// products.js
-// Simple products database handler using the same sqlite connection pattern
+/*
+------------- products.js -------------
+Script para gerenciar produtos no banco de dados
+
+Uso: node products.js
+*/
+
+
 const db = require('./database.js');
 
-// Create products table if it doesn't exist
+// Cria tabela de produtos se nao existir
 db.run(`CREATE TABLE IF NOT EXISTS products (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
@@ -23,24 +29,24 @@ db.run(`CREATE TABLE IF NOT EXISTS products (
     }
 });
 
-// --- FTS5 setup (virtual table for full-text search) ---
-// If the FTS schema changed (for example you renamed 'subtitle' -> 'condition'),
-// ensure the base table has the expected columns before creating/populating the FTS table.
+// --- FTS5 setup (tabela para pesquisa por texto) ---
+// Funcao para criar e popular a tabela FTS5
+// Garante que a tabela FTS5 esteja sincronizada com a tabela products caso haja alteracoes
 function setupFts() {
-  // Drop old FTS table if it exists (this is safe for a local dev DB)
+  // Drop table se ela ja existir
   db.run('DROP TABLE IF EXISTS product_fts', (dropErr) => {
     if (dropErr) {
       console.log('Could not drop existing product_fts (continuing):', dropErr.message);
     }
 
-    // Create FTS virtual table with the desired columns
+    // Cria tabela virtual FTS
     db.run(`CREATE VIRTUAL TABLE IF NOT EXISTS product_fts USING fts5(title, condition, description);`, (err) => {
       if (err) {
         console.log('FTS5 virtual table could not be created (FTS5 may be unavailable):', err.message);
         return;
       }
 
-      // Clear and repopulate the FTS table to sync current products
+      // Limpa e popula a tabela FTS com dados existentes
       db.run('DELETE FROM product_fts', () => {
         db.run(`INSERT INTO product_fts(rowid, title, condition, description) SELECT id, title, condition, description FROM products`, (err) => {
           if (err) {
@@ -51,7 +57,7 @@ function setupFts() {
         });
       });
 
-      // Recreate triggers to keep product_fts in sync with products
+      // Recria gatilhos para manter FTS sincronizado
       const triggersSql = `
         DROP TRIGGER IF EXISTS products_ai;
         DROP TRIGGER IF EXISTS products_au;
@@ -82,12 +88,12 @@ function setupFts() {
   });
 }
 
-// Check products table columns and add 'condition' if missing. If 'subtitle' exists, copy values.
+// Verifica colunas da tabela products e adiciona 'condition' se faltar - se 'subtitle' existir, copia valores
 db.serialize(() => {
   db.all("PRAGMA table_info(products)", (err, cols) => {
     if (err) {
       console.log('Could not inspect products table columns:', err.message);
-      // still attempt to setup FTS (it may fail)
+      // tenta criar FTS mesmo assim
       return setupFts();
     }
 
@@ -100,7 +106,7 @@ db.serialize(() => {
           return setupFts();
         }
 
-        // If an older 'subtitle' column exists, copy its values into 'condition'
+        // Se 'subtitle' existir, copia valores para 'condition'
         if (names.includes('subtitle')) {
           db.run("UPDATE products SET condition = subtitle WHERE condition IS NULL OR condition = ''", (updErr) => {
             if (updErr) console.log('Could not copy subtitle -> condition:', updErr.message);
@@ -111,16 +117,16 @@ db.serialize(() => {
         }
       });
     } else {
-      // condition exists, proceed with FTS setup
+      // Procede para configurar FTS
       setupFts();
     }
   });
 });
 
-// Insert a new product
+// Insere um novo produto
 function createProduct(product, cb) {
   const { title, condition, category, description, price, seller_id, location, approved, status } = product;
-  // default status to 'pending' (require admin approval) unless explicitly provided
+  // Valores padrao
   const statusValue = status || 'pending';
   const approvedFlag = approved === undefined ? 1 : (approved ? 1 : 0);
   const sql = `INSERT INTO products (title, condition, category, description, price, seller_id, location, approved, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -132,6 +138,7 @@ function createProduct(product, cb) {
 }
 
 // --- Favorites helpers ---
+// Cria tabela de favoritos se nao existir
 function ensureFavoritesTable() {
   db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS favorites (
@@ -161,7 +168,7 @@ function createFavorite(user_id, product_id, cb) {
   const sql = `INSERT OR IGNORE INTO favorites (user_id, product_id) VALUES (?, ?)`;
   db.run(sql, [user_id, product_id], function(err) {
     if (err) return cb(err);
-    // check whether row exists (either newly inserted or existed)
+    // verifica se coluna ja existia
     db.get('SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ?', [user_id, product_id], (err, row) => {
       if (err) return cb(err);
       cb(null, !!row);
@@ -169,6 +176,7 @@ function createFavorite(user_id, product_id, cb) {
   });
 }
 
+// Apaga favorito
 function deleteFavorite(user_id, product_id, cb) {
   db.run('DELETE FROM favorites WHERE user_id = ? AND product_id = ?', [user_id, product_id], function(err) {
     if (err) return cb(err);
@@ -176,6 +184,7 @@ function deleteFavorite(user_id, product_id, cb) {
   });
 }
 
+// Verifica se um produto esta favoritado por um usuario
 function isFavorited(user_id, product_id, cb) {
   db.get('SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ? LIMIT 1', [user_id, product_id], (err, row) => {
     if (err) return cb(err);
@@ -183,6 +192,7 @@ function isFavorited(user_id, product_id, cb) {
   });
 }
 
+// Retorna lista de produtos favoritados por um usuario
 function getFavoritesByUser(user_id, limit = 50, offset = 0, cb) {
   const sql = `SELECT p.* FROM favorites f JOIN products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?`;
   db.all(sql, [user_id, limit, offset], (err, rows) => {
@@ -201,7 +211,8 @@ function getFavoritesByUser(user_id, limit = 50, offset = 0, cb) {
 }
 
 // --- Images helpers ---
-// We'll store image paths in a simple images table linked to products
+// Cria tabela de imagens de produtos se nao existir
+// Cada imagem esta associada a um produto via product_id
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS product_images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -217,10 +228,12 @@ db.serialize(() => {
   });
 });
 
+
+// Adiciona imagens a um produto
 function addImages(product_id, paths, cb) {
   if (!paths || paths.length === 0) return cb(null);
   const placeholders = paths.map(() => '(?, ?)').join(',');
-  // We'll insert one-by-one to keep it simple
+  
   let done = 0; let firstErr = null;
   paths.forEach(p => {
     db.run('INSERT INTO product_images (product_id, path) VALUES (?, ?)', [product_id, p], function(err) {
@@ -231,6 +244,7 @@ function addImages(product_id, paths, cb) {
   });
 }
 
+// Retorna imagens associadas a um produto
 function getImages(product_id, cb) {
   db.all('SELECT path FROM product_images WHERE product_id = ? ORDER BY created_at ASC', [product_id], (err, rows) => {
     if (err) return cb(err);
@@ -238,6 +252,7 @@ function getImages(product_id, cb) {
   });
 }
 
+// Remove uma imagem de um produto
 function removeImage(product_id, path, cb) {
   db.run('DELETE FROM product_images WHERE product_id = ? AND path = ?', [product_id, path], function(err) {
     if (err) return cb(err);
@@ -245,8 +260,7 @@ function removeImage(product_id, path, cb) {
   });
 }
 
-
-// Get product by id, including seller name from users table when available
+// Retorna um produto por id
 function getProductById(id, cb) {
   const sql = `SELECT p.*, u.name AS seller_name, u.public_id AS seller_public_id
                FROM products p
@@ -254,7 +268,7 @@ function getProductById(id, cb) {
                WHERE p.id = ?`;
   db.get(sql, [id], (err, row) => {
     if (err || !row) return cb(err, row);
-    // attach images
+    // Imagens
     getImages(row.id, (imgErr, images) => {
       if (!imgErr) row.images = images || [];
       cb(null, row);
@@ -262,11 +276,12 @@ function getProductById(id, cb) {
   });
 }
 
-// Advanced search with filters
+// Pesquisa com filtros avancados
 function searchProductsWithFilters(filters, cb) {
   const finishWithRows = (err, rows) => {
     if (err) return cb(err);
-    // attach images to each row
+    
+    // imagens
     if (!rows || rows.length === 0) return cb(null, rows);
     let remaining = rows.length; let firstErr = null;
     rows.forEach(r => {
@@ -279,18 +294,18 @@ function searchProductsWithFilters(filters, cb) {
     });
   };
 
-  // Build dynamic SQL query
+  // Query base dinamica
   let sql = 'SELECT * FROM products WHERE 1=1';
   let params = [];
 
-  // Text search
+  // Pesquisa por texto
   if (filters.q && filters.q.trim() !== '') {
     const pattern = `%${filters.q}%`;
     sql += ' AND (title LIKE ? OR condition LIKE ? OR description LIKE ?)';
     params.push(pattern, pattern, pattern);
   }
 
-  // Price range filters
+  // Filtros de preco
   if (filters.minPrice !== undefined && filters.minPrice !== null && filters.minPrice > 0) {
     sql += ' AND price >= ?';
     params.push(filters.minPrice);
@@ -300,14 +315,14 @@ function searchProductsWithFilters(filters, cb) {
     params.push(filters.maxPrice);
   }
 
-  // Category filters
+  // Filtros de categoria
   if (filters.selectedCategories && filters.selectedCategories.length > 0) {
     const placeholders = filters.selectedCategories.map(() => '?').join(',');
     sql += ` AND category IN (${placeholders})`;
     params.push(...filters.selectedCategories);
   }
 
-  // Location filters
+  // Filtros de localizacao
   if (filters.selectedLocations && filters.selectedLocations.length > 0) {
     const locationMap = {
       'Retirada na UFSM': 'UFSM',
@@ -319,14 +334,14 @@ function searchProductsWithFilters(filters, cb) {
     params.push(...mappedLocations);
   }
 
-  // Condition filters
+  // Filtros de condicao
   if (filters.selectedConditions && filters.selectedConditions.length > 0) {
     const placeholders = filters.selectedConditions.map(() => '?').join(',');
     sql += ` AND condition IN (${placeholders})`;
     params.push(...filters.selectedConditions);
   }
 
-  // Sorting
+  // Ordenacao
   let orderBy = 'ORDER BY created_at DESC';
   if (filters.sortBy) {
     switch (filters.sortBy) {
@@ -350,10 +365,10 @@ function searchProductsWithFilters(filters, cb) {
     }
   }
 
-  // Only include allowed products in public filtered searches
+  // (apenas produtos permitidos)
   sql += ` AND status = 'allowed' ${orderBy}`;
 
-  // Limit
+  // Limite
   const limit = filters.limit || 50;
   sql += ' LIMIT ?';
   params.push(limit);
@@ -364,11 +379,12 @@ function searchProductsWithFilters(filters, cb) {
   db.all(sql, params, finishWithRows);
 }
 
-// Basic search (simple LIKE-based fallback). For better results, use full-text or external engine.
+// Pesquisa basica por produtos
 function searchProducts(q, limit = 20, cb) {
   const finishWithRows = (err, rows) => {
     if (err) return cb(err);
-    // attach images to each row
+    
+    // imagens
     if (!rows || rows.length === 0) return cb(null, rows);
     let remaining = rows.length; let firstErr = null;
     rows.forEach(r => {
@@ -385,13 +401,13 @@ function searchProducts(q, limit = 20, cb) {
     return db.all("SELECT * FROM products WHERE status = 'allowed' ORDER BY created_at DESC LIMIT ?", [limit], finishWithRows);
   }
 
-  // Build a prefix-style FTS query (controller -> controller*) to increase recall
+  // Query tokens for FTS5
   const tokens = q.split(/\s+/).map(t => t.replace(/[^\w]/g, '')).filter(Boolean).map(t => t + '*').join(' ');
 
   const ftsSql = `SELECT p.* FROM product_fts f JOIN products p ON p.id = f.rowid WHERE f MATCH ? AND p.status = 'allowed' LIMIT ?`;
   db.all(ftsSql, [tokens, limit], (err, rows) => {
     if (err) {
-      // Fallback to LIKE search if FTS isn't available or errors
+      // Fallback se FTS5 der erro
       const pattern = `%${q}%`;
       const sql = `SELECT * FROM products WHERE (title LIKE ? OR condition LIKE ? OR description LIKE ?) AND status = 'allowed' ORDER BY created_at DESC LIMIT ?`;
       const params = [pattern, pattern, pattern, limit];
@@ -400,7 +416,7 @@ function searchProducts(q, limit = 20, cb) {
 
     if (rows && rows.length > 0) return finishWithRows(null, rows);
 
-    // Fallback: simple LIKE-based search
+    // Fallback: pesquisa normal
     const pattern = `%${q}%`;
     const sql = `SELECT * FROM products WHERE (title LIKE ? OR condition LIKE ? OR description LIKE ?) AND status = 'allowed' ORDER BY created_at DESC LIMIT ?`;
     const params = [pattern, pattern, pattern, limit];
@@ -413,7 +429,8 @@ module.exports = {
   getProductById,
   searchProducts,
   searchProductsWithFilters,
-  // Return products for a given seller
+
+  // Retorna produtos de um vendedor
   getProductsBySeller: function(seller_id, cb) {
     db.all('SELECT * FROM products WHERE seller_id = ? ORDER BY created_at DESC', [seller_id], (err, rows) => {
       if (err) return cb(err);
@@ -431,7 +448,7 @@ module.exports = {
   }
 };
 
-// Return free products (price == 0)
+// Retorna produtos gratuitos mais recentes
 module.exports.getFreeProducts = function(limit = 12, cb) {
   db.all("SELECT * FROM products WHERE price = 0 AND status = 'allowed' ORDER BY created_at DESC LIMIT ?", [limit], (err, rows) => {
     if (err) return cb(err);
@@ -448,10 +465,10 @@ module.exports.getFreeProducts = function(limit = 12, cb) {
   });
 };
 
-// Update a product by id
+// Atualiza um produto por id
 module.exports.updateProduct = function(id, data, cb) {
   const { title, condition, category, description, price, location } = data;
-  // When a product is edited, set status back to 'pending' for re-approval
+  // Quando editado mudar status para 'pending'
   const sql = `UPDATE products SET title = ?, condition = ?, category = ?, description = ?, price = ?, location = ?, status = 'pending' WHERE id = ?`;
   const params = [title, condition, category, description, price, location, id];
   db.run(sql, params, function(err) {
@@ -460,11 +477,11 @@ module.exports.updateProduct = function(id, data, cb) {
   });
 };
 
-// Delete a product by id
+// Apaga um produto por id
 module.exports.deleteProduct = function(id, cb) {
   db.run('DELETE FROM products WHERE id = ?', [id], function(err) {
     if (err) return cb(err);
-    // rows affected: this.changes
+
     cb(null, { deleted: this.changes });
   });
 };
@@ -480,7 +497,7 @@ module.exports.addImages = addImages;
 module.exports.getImages = getImages;
 module.exports.removeImage = removeImage;
 
-// Ensure favorites table exists on startup (after products table is ready)
+// Inicializa tabela de favoritos
 db.serialize(() => {
   ensureFavoritesTable();
 });

@@ -4,7 +4,7 @@ const products = require('./products.js');
 
 // Dados de teste mais elaborados
 const testProducts = [
-  // === ELETRÔNICOS ===
+  // === ELETRONICOS ===
   {
     title: 'Notebook Dell Inspiron 15',
     condition: 'Usado - bom',
@@ -221,7 +221,7 @@ const testProducts = [
     location: 'A combinar'
   },
 
-  // === SERVIÇOS ===
+  // === SERVICOS ===
   {
     title: 'Aulas Particulares de Cálculo',
     condition: 'Novo',
@@ -242,7 +242,7 @@ const testProducts = [
   }
 ];
 
-console.log('🗑️  Limpando produtos existentes...');
+console.log('>  Limpando produtos existentes...');
 
 // Limpar produtos existentes primeiro
 db.run('DELETE FROM products', (err) => {
@@ -252,7 +252,7 @@ db.run('DELETE FROM products', (err) => {
   }
   
   console.log('✓ Produtos anteriores removidos');
-  console.log('\n📦 Populando banco com novos dados de teste...\n');
+  console.log('\n> Populando banco com novos dados de teste...\n');
   
   let completed = 0;
   let createdCount = 0;
@@ -269,13 +269,13 @@ db.run('DELETE FROM products', (err) => {
       completed++;
       if (completed === testProducts.length) {
         console.log('\n' + '='.repeat(60));
-        console.log(`✅ CONCLUÍDO! ${createdCount} produtos criados com sucesso!`);
+        console.log(`> CONCLUÍDO! ${createdCount} produtos criados com sucesso!`);
         console.log('='.repeat(60));
         
         // Mostrar resumo por categoria
         db.all('SELECT category, COUNT(*) as count FROM products GROUP BY category', (err, rows) => {
           if (!err && rows) {
-            console.log('\n📊 Resumo por Categoria:');
+            console.log('\n<> Resumo por Categoria:');
             rows.forEach(r => {
               console.log(`   • ${r.category}: ${r.count} produto(s)`);
             });
@@ -284,7 +284,7 @@ db.run('DELETE FROM products', (err) => {
           // Mostrar resumo por condição
           db.all('SELECT condition, COUNT(*) as count FROM products GROUP BY condition', (err, rows) => {
             if (!err && rows) {
-              console.log('\n🏷️  Resumo por Condição:');
+              console.log('\n<>  Resumo por Condição:');
               rows.forEach(r => {
                 console.log(`   • ${r.condition}: ${r.count} produto(s)`);
               });
@@ -293,14 +293,14 @@ db.run('DELETE FROM products', (err) => {
             // Mostrar resumo por localização
             db.all('SELECT location, COUNT(*) as count FROM products GROUP BY location', (err, rows) => {
               if (!err && rows) {
-                console.log('\n📍 Resumo por Localização:');
+                console.log('\n<> Resumo por Localização:');
                 rows.forEach(r => {
                   console.log(`   • ${r.location}: ${r.count} produto(s)`);
                 });
               }
               
               console.log('\n' + '='.repeat(60));
-              console.log('🎉 Banco de dados pronto para testes!');
+              console.log('> Banco de dados pronto para testes!');
               console.log('='.repeat(60) + '\n');
               process.exit(0);
             });

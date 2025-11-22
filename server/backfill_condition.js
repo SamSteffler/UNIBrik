@@ -1,6 +1,14 @@
-// backfill_condition.js
-// One-off script to backfill the 'condition' column in products
-// Require products.js so the products table (and FTS) are created if missing
+
+/*
+------------- backfill_condition.js -------------
+Script para preencher a coluna 'condition' em products
+onde estiver vazia ou nula
+Requer que a coluna 'condition' ja exista na tabela products
+
+Uso: node wipe_products.js
+*/
+
+
 const db = require('./database.js');
 require('./products.js');
 

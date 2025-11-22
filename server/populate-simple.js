@@ -35,7 +35,7 @@ const testProducts = [
   { title: 'Revisão de TCC', condition: 'Novo', category: 'Serviços', description: 'Revisão textual e formatação de TCC nas normas ABNT.', price: 100, seller_id: 1, location: 'A combinar' }
 ];
 
-console.log('🗑️  Limpando e populando banco...\n');
+console.log('>  Limpando e populando banco...\n');
 
 // Aguardar a tabela FTS estar pronta
 setTimeout(() => {
@@ -45,9 +45,9 @@ setTimeout(() => {
       return;
     }
     
-    console.log('📦 Criando produtos...\n');
+    console.log('> Criando produtos...\n');
     
-    // Usar método síncrono serializado
+    // Metodo serializado
     db.serialize(() => {
       const stmt = db.prepare(`INSERT INTO products (title, condition, category, description, price, seller_id, location, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
       
@@ -62,12 +62,12 @@ setTimeout(() => {
       });
       
       stmt.finalize(() => {
-        console.log(`\n✅ ${count} produtos criados!`);
+        console.log(`\n> ${count} produtos criados!`);
         
-        // Mostrar resumo
+        // Mostra resumo
         db.all('SELECT category, COUNT(*) as count FROM products GROUP BY category ORDER BY count DESC', (err, rows) => {
           if (!err) {
-            console.log('\n📊 Resumo:');
+            console.log('\n<> Resumo:');
             rows.forEach(r => console.log(`   ${r.category}: ${r.count}`));
           }
           process.exit(0);
