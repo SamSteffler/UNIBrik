@@ -111,6 +111,13 @@
         </button>
     </div>
 
+    <!-- NOVO: Link de Diretrizes -->
+    <div class="guidelines-footer">
+      <router-link to="/guidelines" class="guidelines-link">
+        ℹ️ Leia nossas diretrizes de segurança e negociação
+      </router-link>
+    </div>
+
     <!-- Chat Popup -->
     <ChatPopup
       v-model:isOpen="chatOpen"
@@ -629,5 +636,26 @@ function openChat() {
   background: #c0392b;
 }
 
+/* NOVO: Estilo do link de diretrizes */
+.guidelines-footer {
+  margin-top: 2rem;
+  text-align: center;
+}
 
+.guidelines-link {
+  display: inline-block;
+  color: #636e72;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #f1f2f6;
+  transition: all 0.2s ease;
+}
+
+.guidelines-link:hover {
+  background-color: #e1e2e6;
+  color: #004451;
+  transform: translateY(-1px);
+}
 </style>
