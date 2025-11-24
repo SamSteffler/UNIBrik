@@ -1,4 +1,3 @@
-
 /*
 ------------- server.js -------------
 Servidor principal da API UniBrik
@@ -31,6 +30,22 @@ app.use((req, res, next) => {
     next();
 });
 
+// ---------------------------------------------------------
+// FUNÇÕES AUXILIARES
+// ---------------------------------------------------------
+
+// Verifica se o e-mail pertence ao domínio da UFSM
+function isUfsmEmail(email) {
+    if (!email) return false;
+    const parts = email.split('@');
+    // Garante que tem algo antes e depois do @
+    if (parts.length !== 2) return false;
+    
+    const domain = parts[1].toLowerCase();
+    // Verifica se "ufsm" está presente na parte do domínio (ex: @ufsm.br, @acad.ufsm.br)
+    return domain.includes('ufsm');
+}
+
 // Rota de Teste
 app.get("/", (req, res) => {
     res.json({ message: "Servidor UniBrik está no ar!" });
@@ -43,6 +58,14 @@ app.post("/api/auth/register", async (req, res) => {
             birth_date, phone, address_cep, address_street, 
             address_number, address_complement, address_district, address_city, address_uf
         } = req.body;
+
+    // --- NOVA VALIDAÇÃO UFSM ---
+    if (!isUfsmEmail(email)) {
+        return res.status(400).json({ 
+            error: "Acesso restrito. Utilize um e-mail institucional da UFSM." 
+        });
+    }
+    // ---------------------------
 
     if (!name || !email) {
         return res.status(400).json({ error: "Nome e email são obrigatórios." });
@@ -121,6 +144,14 @@ app.post("/api/auth/login", (req, res) => {
 // 4. ROTA DE LOGIN COM GOOGLE (MODIFICADA)
 app.post("/api/auth/google", (req, res) => {
     const { sub, email, name, picture } = req.body;
+
+    // --- NOVA VALIDAÇÃO UFSM ---
+    if (!isUfsmEmail(email)) {
+        return res.status(403).json({ 
+            error: "Login permitido apenas com e-mails da UFSM." 
+        });
+    }
+    // ---------------------------
 
     const sql = "SELECT * FROM users WHERE google_sub = ? OR email = ?";
     db.get(sql, [sub, email], (err, user) => {

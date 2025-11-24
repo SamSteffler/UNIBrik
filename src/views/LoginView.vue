@@ -4,15 +4,30 @@ import { useRouter } from 'vue-router';
 import { GoogleLogin } from 'vue3-google-login';
 import authService from '../services/authService';
 import { url } from '../services/api';
+import logo from '../assets/blue-logo-1.png';
 
 const router = useRouter();
 const email = ref('');
 const password = ref('');
 
-// MODIFICADO: Funcao de login com e-mail e senha
+// Função auxiliar de validação
+const isUfsmEmail = (emailToCheck) => {
+  if (!emailToCheck) return false;
+  const parts = emailToCheck.split('@');
+  if (parts.length !== 2) return false;
+  return parts[1].toLowerCase().includes('ufsm');
+};
+
+// Login com e-mail e senha
 const handleEmailLogin = async () => {
+  // Validação Frontend
+  if (!isUfsmEmail(email.value)) {
+    alert('Acesso restrito: Por favor, utilize seu e-mail institucional da UFSM.');
+    return;
+  }
+
   try {
-  const res = await fetch(url('/api/auth/login'), {
+    const res = await fetch(url('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email.value, password: password.value })
@@ -21,76 +36,84 @@ const handleEmailLogin = async () => {
     const data = await res.json();
 
     if (!res.ok) {
-      // Verifica se usuario esta bloqueado
       if (res.status === 403 && data.blocked) {
         authService.login(data.user || { email: email.value, approved: 0 });
         router.push('/blocked');
         return;
       }
-      // Se a resposta não for 2xx = erro
       throw new Error(data.error || 'Falha no login.');
     }
 
-    // Se o login for bem-sucedido:
-    authService.login(data.user); // Salva o estado do usuario
-    router.push('/profile');      // Redireciona para o perfil
+    authService.login(data.user);
+    router.push('/profile');
 
   } catch (error) {
     console.error("Erro no login:", error);
-    alert(error.message); // Exibe o erro para o usuario
+    alert(error.message);
   }
 };
-// MODIFICADO: Callback para o sucesso do login com Google
+
+// Callback para o sucesso do login com Google
 const onLoginSuccess = async (response) => {
-  const userData = JSON.parse(atob(response.credential.split('.')[1]));
-  
-  // NOVA LOGICA
-  // Enviar os dados para o backend para verificacao
-  const res = await fetch(url('/api/auth/google'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: userData.name,
-        email: userData.email,
-        sub: userData.sub,
-        picture: userData.picture
-      })
-  });
+  try {
+    const userData = JSON.parse(atob(response.credential.split('.')[1]));
+    
+    // Validação crítica UFSM
+    if (!isUfsmEmail(userData.email)) {
+        alert('Acesso restrito: Utilize sua conta Google vinculada à UFSM (@ufsm.br, @acad.ufsm.br).');
+        return; 
+    }
 
-  const data = await res.json();
-
-  if (res.status === 200) { // faz o login se ja existente
-    authService.login(data.user);
-    router.push('/profile');
-  } else if (res.status === 403 && data.blocked) { // bloqueado
-    authService.login(data.user || { email: userData.email, approved: 0, name: userData.name });
-    router.push('/blocked');
-  } else if (res.status === 404) { // redireciona para o cadastro se nao existente
-    // dados do Google como query params para a pagina de registro
-    router.push({ 
-        name: 'register', 
-        query: { 
-            name: userData.name,
-            email: userData.email,
-            sub: userData.sub,
-            picture: userData.picture
-        } 
+    const res = await fetch(url('/api/auth/google'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userData.name,
+          email: userData.email,
+          sub: userData.sub,
+          picture: userData.picture
+        })
     });
-  } else {
-    console.error('Falha na autenticação:', data.error);
+
+    const data = await res.json();
+
+    if (res.status === 200) { 
+      authService.login(data.user);
+      router.push('/profile');
+    } else if (res.status === 403) {
+       if (data.blocked) {
+          authService.login(data.user || { email: userData.email, approved: 0, name: userData.name });
+          router.push('/blocked');
+       } else {
+          alert(data.error || 'Acesso negado.');
+       }
+    } else if (res.status === 404) { 
+      router.push({ 
+          name: 'register', 
+          query: { 
+              name: userData.name,
+              email: userData.email,
+              sub: userData.sub,
+              picture: userData.picture
+          } 
+      });
+    } else {
+      alert(data.error || 'Erro ao conectar com Google');
+    }
+  } catch (err) {
+    console.error("Erro no login Google:", err);
+    alert("Erro ao processar login.");
   }
 };
 
 const onLoginFailure = () => {
   console.error('Login com Google falhou');
+  alert("Não foi possível conectar com o Google.");
 };
 
 const goToRegister = () => {
   router.push('/register');
 };
-
-// coisa do pao
-import logo from '../assets/blue-logo-1.png' 
 </script>
 
 <template>
@@ -98,6 +121,7 @@ import logo from '../assets/blue-logo-1.png'
     <div class="logo">
       <img :src="logo" alt="Logo" />
     </div>
+    
     <form @submit.prevent="handleEmailLogin">
       <input
         v-model="email" required
@@ -116,16 +140,28 @@ import logo from '../assets/blue-logo-1.png'
       <button type="submit" class="main-btn">Entrar</button>
     </form>
 
-
     <hr class="divider"/>
 
     <p>Ou escolha uma das opções</p>
+    <!-- Corrigido: removida a classe 'secondary-btn' para voltar a ser preenchido -->
     <button class="main-btn" @click.prevent="goToRegister">
       Cadastre-se!
     </button>
 
-    <div class="google-login-button">
-      <GoogleLogin :callback="onLoginSuccess" :onFailure="onLoginFailure"></GoogleLogin>
+    <!-- Botão Google Customizado com Logo Oficial -->
+    <div class="google-container">
+      <GoogleLogin :callback="onLoginSuccess" :error="onLoginFailure">
+        <button class="google-custom-btn">
+          <!-- SVG Oficial do Google -->
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="google-icon">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+          </svg>
+          Entrar com Google
+        </button>
+      </GoogleLogin>
     </div>
     
   </div>
@@ -134,10 +170,10 @@ import logo from '../assets/blue-logo-1.png'
 <style scoped>
 .login-container {
   max-width: 400px;
-  height: 550px;
+  /* Altura removida para ajustar ao conteúdo */
   width: 350px;
   margin: 1rem auto;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
   background-color: #f2f2f2;
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -149,10 +185,9 @@ import logo from '../assets/blue-logo-1.png'
   align-items: center;
 }
 
-/* Logo */
 .logo {
   display: flex;
-  margin-top: 20px;
+  margin-top: 10px;
   margin-bottom: 20px;
   flex-direction: column;
   align-items: center;
@@ -163,12 +198,6 @@ import logo from '../assets/blue-logo-1.png'
   margin-bottom: 0.5rem;
 }
 
-.logo h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-/* Inputs */
 .input-field {
   width: 85%;
   padding: 0.65rem 1rem;
@@ -188,35 +217,18 @@ import logo from '../assets/blue-logo-1.png'
 .input-field:focus {
   border-color: #0097b2;
   background-color: #f2f2f2;
-  outline: none; /* remove a borda de foco padrão */
-  box-shadow: none; /* remove qualquer sombra interna extra */
+  outline: none;
+  box-shadow: none;
 }
 
-.input-field:focus::placeholder {
-  color: #0097b2;
-}
-
-/* Chrome, Edge, Safari */
-.input-field:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px #f2f2f2 inset; /* muda o fundo */
-  -webkit-text-fill-color: #0097b2; /* muda a cor da fonte */
-  transition: background-color 5000s ease-in-out; /* evita efeito piscante */
-}
-
-/* Firefox */
-.input-field:-moz-autofill {
-  box-shadow: 0 0 0px 1000px #f2f2f2 inset;
-  -moz-text-fill-color: #0097b2;
-}
-
-/* Botão principal */
+/* Estilos gerais dos botões (Entrar e Cadastre-se) */
 .main-btn {
-  margin-top: 25px;
-  margin-bottom: 20px;
+  margin-top: 20px;
+  margin-bottom: 10px;
   border: 2px solid #0097b2;
   background-color: #0097b2;
   color: #f2f2f2;
-  width: 60%;
+  width: 60%; 
   border-radius: 50px;
   padding: 0.8rem 2rem;
   font-weight: 700;
@@ -226,59 +238,51 @@ import logo from '../assets/blue-logo-1.png'
 }
 
 .main-btn:hover {
-  border: 2px solid #0097b2;
-  background-color: #f0f0f0ff;
-  color: #0097b2;
+  background-color: #007a8f;
+  border-color: #007a8f;
 }
 
-/* Divisor */
 .divider {
   width: 75%;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin: 20px 0;
   border: none;
   border-top: 2px solid #0097b26e;
 }
 
-/* Login Social */
-.social-login {
-  margin-top: 20px;
-  margin-bottom: 20px;
+/* Botão Google Customizado */
+.google-container {
+  margin-top: 15px;
+  width: 100%;
   display: flex;
-  gap: 1rem;
   justify-content: center;
-  align-items: center;
 }
 
-.social-btn {
+.google-custom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   background-color: white;
-  border: 1px solid #0097b2;
-  border-radius: 50%;
-  width: 48px;        
-  height: 48px;      
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 50px; /* Redondo */
+  padding: 0.8rem 2rem;
+  font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-width: 220px;
 }
 
-.social-btn img {
-  width: 35px;
-  height: 35px;
+.google-custom-btn:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
 }
 
-.social-btn:hover {
-  transform: scale(1.1);
-  border: 1.5px solid #0097b2;
-}
-
-
-.google:hover {
-  background-color: #ffffff;
-}
-
-.facebook img {
-  filter: none;
+.google-icon {
+  width: 20px;
+  height: 20px;
 }
 </style>

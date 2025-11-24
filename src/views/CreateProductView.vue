@@ -90,6 +90,11 @@
           </p>
         </fieldset>
 
+        <!-- NOVO: Aviso sobre diretrizes -->
+        <div class="guidelines-notice">
+          Ao publicar, você concorda com nossas <router-link to="/guidelines" target="_blank">Diretrizes da Comunidade</router-link>.
+        </div>
+
         <div class="button-group">
           <button type="button" class="cancel-button" @click="$router.push('/')">Cancelar</button>
           <button type="submit" class="submit-button">Criar Anúncio</button>
@@ -339,6 +344,24 @@ input:focus, select:focus, textarea:focus {
   color: #00445166;
   font-size: 0.9rem;
   font-style: italic;
+}
+
+/* NOVO: Estilo do aviso de diretrizes */
+.guidelines-notice {
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #636e72;
+  font-size: 0.9rem;
+}
+
+.guidelines-notice a {
+  color: #0097b2;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.guidelines-notice a:hover {
+  text-decoration: underline;
 }
 
 .button-group {
