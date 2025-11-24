@@ -14,6 +14,8 @@ import MessagesView from '../views/MessagesView.vue'
 import TestFiltersView from '../views/TestFiltersView.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
 import BlockedUserView from '../views/BlockedUserView.vue'
+// IMPORTAÇÃO NOVA: Página de Diretrizes
+import GuidelinesView from '../views/GuidelinesView.vue'
 import { userState } from '../services/authService';
 
 const router = createRouter({
@@ -54,49 +56,42 @@ const router = createRouter({
       meta: {
         requiresAuth: true
       }
-    }
-    ,
+    },
     {
       path: '/profile/edit',
       name: 'profile-edit',
       component: EditProfileView,
       meta: { requiresAuth: true }
-    }
-    ,
+    },
     {
       path: '/my-ads',
       name: 'my-ads',
       component: MyAdsView,
       meta: { requiresAuth: true }
-    }
-    ,
+    },
     {
       path: '/product/:id',
       name: 'product',
       component: ProductView
-    }
-    ,
+    },
     {
       path: '/product/:id/edit',
       name: 'product-edit',
       component: EditProductView,
       meta: { requiresAuth: true }
-    }
-    ,
+    },
     {
       path: '/favorites',
       name: 'favorites',
       component: MyFavoritesView,
       meta: { requiresAuth: true }
-    }
-    ,
+    },
     {
       path: '/messages',
       name: 'messages',
       component: MessagesView,
       meta: { requiresAuth: true }
-    }
-    ,
+    },
     {
       path: '/admin/users',
       name: 'admin-users',
@@ -108,6 +103,12 @@ const router = createRouter({
       name: 'blocked',
       component: BlockedUserView,
       meta: { hideHeader: true }
+    },
+    // ROTA NOVA: Diretrizes
+    {
+      path: '/guidelines',
+      name: 'guidelines',
+      component: GuidelinesView
     }
   ]
 })
@@ -133,5 +134,3 @@ router.beforeEach((to, from, next) => {
 });
 
 export default router
-
-
